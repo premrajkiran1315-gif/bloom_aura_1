@@ -6,6 +6,7 @@
 
 session_start();
 require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/includes/csrf.php';
 require_once __DIR__ . '/includes/flash.php';
 
 // Fetch featured/latest bouquets
@@ -92,7 +93,7 @@ require_once __DIR__ . '/includes/header.php';
                                 <form action="/pages/cart.php" method="POST">
                                     <?php csrf_field(); ?>
                                     <input type="hidden" name="action" value="add">
-                                    <input type="hidden" name="bouquet_id" value="<?= (int)$b['id'] ?>">
+                                    <input type="hidden" name="product_id" value="<?= (int)$b['id'] ?>">
                                     <input type="hidden" name="qty" value="1">
                                     <button type="submit" class="btn btn-primary btn-sm">Add to Cart</button>
                                 </form>
