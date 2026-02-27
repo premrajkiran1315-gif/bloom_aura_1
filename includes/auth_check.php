@@ -1,19 +1,25 @@
 <?php
 /**
  * bloom-aura/includes/auth_check.php
+ * Session guard for customer-facing protected pages.
+ * Include at the top of any page that requires login.
+ * Session must already be started before including this file.
  *
- * Include at the TOP of every page that requires a logged-in customer.
- * Usage:  require_once __DIR__ . '/../includes/auth_check.php';
+ * Usage:
+ *   session_start();
+ *   require_once __DIR__ . '/../includes/auth_check.php';
  */
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+if (empty($_SESSION['user_id'])) {
+    // Store the URL they were trying to reach so we can redirect back after login
+    $_SESSION['login_redirect'] = $_SERVER['REQUEST_URI'];
+    header('Location: /pages/login.php');
+    exit;
 }
 
-// If not logged in as a customer, redirect to login page
-if (empty($_SESSION['user_id']) || empty($_SESSION['user_role']) || $_SESSION['user_role'] !== 'customer') {
-    // Store intended destination so login can redirect back
-    $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
-    header('Location: /pages/login.php');
+// Also block deactivated accounts
+if (isset($_SESSION['user_active']) && $_SESSION['user_active'] === 0) {
+    session_destroy();
+    header('Location: /pages/login.php?reason=deactivated');
     exit;
 }
