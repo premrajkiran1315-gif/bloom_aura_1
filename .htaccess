@@ -46,9 +46,9 @@ Options -Indexes
 
 # ── PHP error handling ────────────────────────────────────────────────────────
 <IfModule mod_php.c>
-    php_flag  display_errors Off        # Never show errors in browser
-    php_flag  log_errors     On         # Log errors to server log
-    php_value error_reporting 32767     # Log everything (E_ALL)
+    php_flag  display_errors Off        
+    php_flag  log_errors     On         
+    php_value error_reporting 32767     
 </IfModule>
 
 # ── Protect uploads — only allow image files ─────────────────────────────────
@@ -59,7 +59,7 @@ Options -Indexes
 
 # ── Session cookie hardening (if using PHP session cookies) ──────────────────
 <IfModule mod_php.c>
-    php_value session.cookie_httponly 1   # JS cannot read the cookie
+    php_value session.cookie_httponly 1  
     php_value session.cookie_samesite Strict
     php_value session.use_strict_mode 1
 </IfModule>
