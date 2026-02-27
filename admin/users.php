@@ -8,6 +8,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/flash.php';
+require_once __DIR__ . '/../includes/admin_auth_check.php';
 
 // ── Admin guard ───────────────────────────────────────────────────────────────
 if (empty($_SESSION['admin_id']) || ($_SESSION['admin_role'] ?? '') !== 'admin') {
@@ -93,7 +94,7 @@ try {
 }
 
 $pageTitle = 'Manage Users — Admin';
-require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/admin_header.php';
 ?>
 
 <!-- Breadcrumb -->
@@ -210,4 +211,4 @@ require_once __DIR__ . '/../includes/header.php';
 
 </div><!-- /.page-container -->
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/admin_footer.php'; ?>

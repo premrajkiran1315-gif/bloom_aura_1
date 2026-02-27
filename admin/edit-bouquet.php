@@ -8,6 +8,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/flash.php';
+require_once __DIR__ . '/../includes/admin_auth_check.php';
 
 // ── Admin guard ───────────────────────────────────────────────────────────────
 if (empty($_SESSION['admin_id']) || ($_SESSION['admin_role'] ?? '') !== 'admin') {
@@ -112,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pageTitle = 'Edit Bouquet — Admin';
-require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/admin_header.php';
 ?>
 
 <!-- Breadcrumb -->
@@ -153,7 +154,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <option value="">— Select Category —</option>
                         <?php foreach ($categories as $cat): ?>
                             <option value="<?= (int)$cat['id'] ?>"
-                                <?= ($POST['category_id'] ?? $bouquet['category_id']) == $cat['id'] ? 'selected' : '' ?>>
+                                <?= ($_POST['category_id'] ?? $bouquet['category_id']) == $cat['id'] ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8') ?>
                             </option>
                         <?php endforeach; ?>
@@ -239,4 +240,4 @@ document.getElementById('image').addEventListener('change', function () {
 });
 </script>
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/admin_footer.php'; ?>

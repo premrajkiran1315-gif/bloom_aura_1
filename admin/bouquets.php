@@ -9,6 +9,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/flash.php';
+require_once __DIR__ . '/../includes/admin_auth_check.php';
 
 // ── Admin guard ───────────────────────────────────────────────────────────────
 if (empty($_SESSION['admin_id']) || ($_SESSION['admin_role'] ?? '') !== 'admin') {
@@ -82,7 +83,7 @@ try {
 }
 
 $pageTitle = 'Manage Bouquets — Admin';
-require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/admin_header.php';
 ?>
 
 <div class="page-container admin-page">
@@ -140,7 +141,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 >
                             </td>
                             <td>
-                                <a href="/pages/product.php?slug=<?= urlencode($b['name']) ?>" target="_blank" class="table-product-name">
+                                <a href="/pages/product.php?slug=<?= urlencode($b['slug']) ?>" target="_blank" class="table-product-name">
                                     <?= htmlspecialchars($b['name'], ENT_QUOTES, 'UTF-8') ?>
                                 </a>
                             </td>
@@ -191,4 +192,4 @@ require_once __DIR__ . '/../includes/header.php';
 
 </div><!-- /.page-container -->
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/admin_footer.php'; ?>

@@ -8,6 +8,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/flash.php';
+require_once __DIR__ . '/../includes/admin_auth_check.php';
 
 // ── Admin guard ───────────────────────────────────────────────────────────────
 if (empty($_SESSION['admin_id']) || ($_SESSION['admin_role'] ?? '') !== 'admin') {
@@ -32,7 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
             flash('Could not update order status.', 'error');
         }
     }
-    header('Location: /admin/orders.php' . ($_GET['status'] ? '?status=' . urlencode($_GET['status'] ?? '') : ''));
+    $qs = !empty($_GET['status']) ? '?status=' . urlencode($_GET['status']) : '';
+    header('Location: /admin/orders.php' . $qs);
     exit;
 }
 
@@ -93,7 +95,7 @@ try {
 }
 
 $pageTitle = 'Manage Orders — Admin';
-require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/admin_header.php';
 ?>
 
 <!-- Breadcrumb -->
@@ -216,4 +218,4 @@ require_once __DIR__ . '/../includes/header.php';
 
 </div><!-- /.page-container -->
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/admin_footer.php'; ?>
