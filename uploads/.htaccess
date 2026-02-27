@@ -1,0 +1,12 @@
+# bloom-aura/uploads/.htaccess
+# This folder stores user-uploaded bouquet images.
+# Block ALL PHP execution here — even if someone uploads a .php file,
+# it cannot be executed by the server.
+
+<FilesMatch "\.php[0-9]?$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+Options -ExecCGI
+AddHandler cgi-script .php .pl .py .jsp .asp .sh .cgi

@@ -1,0 +1,65 @@
+# bloom-aura/.htaccess
+# Apache security configuration for Bloom Aura.
+
+Options -Indexes           # Never list directory contents
+
+# ── Block direct browser access to sensitive folders ──────────────────────────
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block access to config, includes, sql, and vendor directories
+    RewriteRule ^(config|includes|sql)/.*$  - [F,L]
+
+    # Pretty URL rewrites (optional — maps /shop to /pages/shop.php etc.)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^shop/?$              /pages/shop.php          [L,QSA]
+    RewriteRule ^cart/?$              /pages/cart.php          [L,QSA]
+    RewriteRule ^checkout/?$          /pages/checkout.php      [L,QSA]
+    RewriteRule ^login/?$             /pages/login.php         [L,QSA]
+    RewriteRule ^register/?$          /pages/register.php      [L,QSA]
+    RewriteRule ^logout/?$            /pages/logout.php        [L,QSA]
+    RewriteRule ^profile/?$           /pages/profile.php       [L,QSA]
+    RewriteRule ^orders/?$            /pages/order-history.php [L,QSA]
+    RewriteRule ^wishlist/?$          /pages/wishlist.php      [L,QSA]
+</IfModule>
+
+# ── Security headers ──────────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+    # Prevent clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+
+    # Prevent MIME-type sniffing
+    Header always set X-Content-Type-Options "nosniff"
+
+    # Referrer policy
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Basic Content Security Policy — tighten for production
+    Header always set Content-Security-Policy "default-src 'self'; \
+        script-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; \
+        style-src  'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; \
+        font-src   'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; \
+        img-src    'self' data:; \
+        connect-src 'self';"
+</IfModule>
+
+# ── PHP error handling ────────────────────────────────────────────────────────
+<IfModule mod_php.c>
+    php_flag  display_errors Off        # Never show errors in browser
+    php_flag  log_errors     On         # Log errors to server log
+    php_value error_reporting 32767     # Log everything (E_ALL)
+</IfModule>
+
+# ── Protect uploads — only allow image files ─────────────────────────────────
+<FilesMatch "\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|sh|cgi)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# ── Session cookie hardening (if using PHP session cookies) ──────────────────
+<IfModule mod_php.c>
+    php_value session.cookie_httponly 1   # JS cannot read the cookie
+    php_value session.cookie_samesite Strict
+    php_value session.use_strict_mode 1
+</IfModule>

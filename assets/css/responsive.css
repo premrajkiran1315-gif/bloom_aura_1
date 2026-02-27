@@ -1,0 +1,85 @@
+/**
+ * bloom-aura/assets/css/responsive.css
+ * Mobile-first breakpoints — imported after style.css.
+ */
+
+/* ── Tablet: 768px+ ── */
+@media (min-width: 768px) {
+  .main-nav {
+    display: flex;
+  }
+  .hamburger {
+    display: none;
+  }
+  .user-name-label {
+    display: inline;
+  }
+}
+
+/* ── Desktop: 1024px+ ── */
+@media (min-width: 1024px) {
+  .page-container { padding: 2.5rem 2rem; }
+  .shop-layout    { margin: 2rem auto; }
+}
+
+/* ── Mobile overrides: <768px ── */
+@media (max-width: 767px) {
+  :root { --header-h: 60px; }
+
+  .user-name-label { display: none; }
+
+  /* Shop layout stacks vertically */
+  .shop-layout {
+    flex-direction: column;
+    margin: 1rem;
+  }
+  .shop-sidebar { width: 100%; }
+
+  /* Product grid: 2 columns on mobile */
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: .75rem;
+  }
+
+  /* Cart stacks */
+  .cart-layout {
+    flex-direction: column;
+  }
+  .cart-summary { width: 100%; }
+
+  /* Checkout stacks */
+  .checkout-layout {
+    flex-direction: column;
+  }
+  .checkout-summary {
+    width: 100%;
+    position: static;
+  }
+
+  /* Auth card: less padding */
+  .auth-card { padding: 1.5rem 1.25rem; }
+
+  /* Form row: single column */
+  .form-row { grid-template-columns: 1fr; }
+
+  /* Footer: single column */
+  .footer-inner { grid-template-columns: 1fr; gap: 1.5rem; }
+}
+
+/* ── Tiny phones: <400px ── */
+@media (max-width: 399px) {
+  .product-grid { grid-template-columns: 1fr; }
+  .page-title   { font-size: 1.5rem; }
+}
+
+/* ── Print styles (for order confirmation) ── */
+@media print {
+  .site-header,
+  .site-footer,
+  .btn,
+  nav { display: none !important; }
+
+  body { background: #fff; color: #000; }
+
+  .page-container { padding: 0; max-width: 100%; }
+}
