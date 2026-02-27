@@ -1,7 +1,7 @@
 # bloom-aura/.htaccess
 # Apache security configuration for Bloom Aura.
 
-Options -Indexes           # Never list directory contents
+Options -Indexes           
 
 # ── Block direct browser access to sensitive folders ──────────────────────────
 <IfModule mod_rewrite.c>
