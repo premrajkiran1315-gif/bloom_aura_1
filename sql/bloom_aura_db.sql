@@ -5,11 +5,11 @@
 --   mysql -u root -p < bloom_aura.sql
 -- ════════════════════════════════════════════════════════════════
 
-CREATE DATABASE IF NOT EXISTS bloom_aura
+CREATE DATABASE IF NOT EXISTS bloom_aura_db
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
-USE bloom_aura;
+USE bloom_aura_db;
 
 -- ── USERS ────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
