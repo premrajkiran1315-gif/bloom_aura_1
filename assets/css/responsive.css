@@ -1,6 +1,7 @@
 /**
- * bloom-aura/assets/css/responsive.css
- * Mobile-first breakpoints — imported after style.css.
+ * bloom-aura-1/assets/css/responsive.css
+ * Mobile-first breakpoints — import after style.css.
+ * Exact UI match to bloom_aura project.
  */
 
 /* ── Tablet: 768px+ ── */
@@ -14,26 +15,38 @@
   .user-name-label {
     display: inline;
   }
+  .profile-grid {
+    grid-template-columns: 260px 1fr;
+  }
 }
 
 /* ── Desktop: 1024px+ ── */
 @media (min-width: 1024px) {
   .page-container { padding: 2.5rem 2rem; }
-  .shop-layout    { margin: 2rem auto; }
+  .product-detail-layout { flex-direction: row; }
 }
 
 /* ── Mobile overrides: <768px ── */
 @media (max-width: 767px) {
   :root { --header-h: 60px; }
 
+  /* Hide label text in header user button */
   .user-name-label { display: none; }
 
-  /* Shop layout stacks vertically */
-  .shop-layout {
-    flex-direction: column;
-    margin: 1rem;
+  /* Hide pill nav — replaced by hamburger */
+  .main-nav { display: none; }
+  .hamburger { display: flex; }
+
+  /* Shop body stacks vertically */
+  .shop-body {
+    grid-template-columns: 1fr;
   }
-  .shop-sidebar { width: 100%; }
+  .shop-sidebar-panel {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid #e8e8e8;
+  }
 
   /* Product grid: 2 columns on mobile */
   .product-grid {
@@ -45,7 +58,10 @@
   .cart-layout {
     flex-direction: column;
   }
-  .cart-summary { width: 100%; }
+  .cart-summary {
+    width: 100%;
+    position: static;
+  }
 
   /* Checkout stacks */
   .checkout-layout {
@@ -64,12 +80,44 @@
 
   /* Footer: single column */
   .footer-inner { grid-template-columns: 1fr; gap: 1.5rem; }
+  .footer-trust-bar { flex-direction: column; gap: .75rem; text-align: center; }
+
+  /* Product detail stacks */
+  .product-detail-layout {
+    flex-direction: column;
+  }
+
+  /* Profile stacks */
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Shop topbar compact */
+  .shop-topbar { padding: 10px 16px; }
+
+  /* Confirm actions stacks */
+  .confirm-actions { flex-direction: column; }
+  .confirm-actions .btn { width: 100%; justify-content: center; }
+
+  /* Toast smaller on mobile */
+  .toast { left: 1rem; right: 1rem; min-width: unset; }
+
+  /* Pagination wraps */
+  .pagination { flex-wrap: wrap; }
 }
 
 /* ── Tiny phones: <400px ── */
 @media (max-width: 399px) {
   .product-grid { grid-template-columns: 1fr; }
   .page-title   { font-size: 1.5rem; }
+  .auth-card    { padding: 1.25rem 1rem; }
+}
+
+/* ── Large desktop: 1280px+ ── */
+@media (min-width: 1280px) {
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
 }
 
 /* ── Print styles (for order confirmation) ── */
@@ -77,9 +125,11 @@
   .site-header,
   .site-footer,
   .btn,
-  nav { display: none !important; }
+  nav,
+  .confirm-actions,
+  .breadcrumb { display: none !important; }
 
   body { background: #fff; color: #000; }
-
+  .confirm-card { box-shadow: none !important; border: 1px solid #ddd !important; }
   .page-container { padding: 0; max-width: 100%; }
 }
