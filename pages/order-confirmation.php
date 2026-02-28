@@ -139,12 +139,4 @@ require_once __DIR__ . '/../includes/header.php';
 
 </div><!-- /.page-container -->
 
-<style>
-/* Print styles for order confirmation */
-@media print {
-    header, footer, .confirm-actions, nav { display: none !important; }
-    .confirm-card { box-shadow: none !important; border: 1px solid #ddd !important; }
-}
-</style>
-
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

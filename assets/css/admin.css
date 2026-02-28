@@ -175,6 +175,9 @@ html { scroll-behavior: smooth; }
 
 /* ── Forms (admin) ── */
 .admin-form .form-group label { color: rgba(255,255,255,.6); }
+.admin-search-input { padding: .6rem .85rem; border: 1px solid var(--adm-border); border-radius: 8px; background: rgba(255,255,255,.05); color: rgba(255,255,255,.7); font-family: var(--font-admin); font-size: .85rem; }
+.admin-search-input:focus { border-color: var(--adm-pink); background: rgba(214,51,132,.08); outline: none; }
+.admin-search-narrow { width: 130px; }
 .admin-form .form-group input,
 .admin-form .form-group select,
 .admin-form .form-group textarea {
@@ -239,7 +242,8 @@ html { scroll-behavior: smooth; }
 
 /* ── Avatar (user list) ── */
 .user-avatar-inline { display: flex; align-items: center; gap: .6rem; }
-.avatar-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; color: white; flex-shrink: 0; }
+.avatar-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; color: white; flex-shrink: 0; background: linear-gradient(135deg, #d63384, #ff4d94); }
+.avatar-dynamic { background: hsl(var(--hue, 210), 55%, 60%); }
 
 /* ── Two-col form layout (categories) ── */
 .admin-two-col { display: grid; grid-template-columns: 1fr 1.4fr; gap: 1.5rem; align-items: flex-start; }

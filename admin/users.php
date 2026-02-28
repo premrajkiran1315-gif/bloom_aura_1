@@ -160,7 +160,7 @@ require_once __DIR__ . '/../includes/admin_header.php';
                         <tr>
                             <td>
                                 <div class="user-avatar-inline">
-                                    <span class="avatar-circle" style="background: hsl(<?= (crc32($u['name']) % 360 + 360) % 360 ?>, 55%, 60%)">
+                                    <span class="avatar-circle avatar-dynamic">
                                         <?= strtoupper(mb_substr($u['name'], 0, 1)) ?>
                                     </span>
                                     <?= htmlspecialchars($u['name'], ENT_QUOTES, 'UTF-8') ?>

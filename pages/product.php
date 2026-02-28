@@ -176,456 +176,6 @@ $pageTitle   = htmlspecialchars($bouquet['name'], ENT_QUOTES, 'UTF-8') . ' — B
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<style>
-body { background: #f5f5f7; }
-
-/* ── Breadcrumb ── */
-.breadcrumb-bar {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: .85rem 1.25rem .4rem;
-    font-size: .8rem;
-    color: #888;
-    display: flex;
-    align-items: center;
-    gap: .4rem;
-    flex-wrap: wrap;
-}
-.breadcrumb-bar a { color: #d63384; text-decoration: none; }
-.breadcrumb-bar a:hover { text-decoration: underline; }
-.breadcrumb-bar span { color: #bbb; }
-
-/* ── Product Hero ── */
-.product-wrap {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 1.25rem 3rem;
-}
-.product-hero {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    background: white;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 4px 24px rgba(0,0,0,.07);
-    margin-bottom: 2.5rem;
-}
-
-/* Image pane */
-.product-img-pane {
-    position: relative;
-    background: linear-gradient(135deg, #fff0f5, #fce4ec);
-    min-height: 440px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-.product-main-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    position: absolute;
-    inset: 0;
-    transition: transform .5s;
-}
-.product-img-pane:hover .product-main-img { transform: scale(1.04); }
-
-.product-badge-oos {
-    position: absolute;
-    top: 16px; left: 16px;
-    background: rgba(220,38,38,.9);
-    color: white;
-    font-size: .8rem;
-    font-weight: 700;
-    padding: .4rem .9rem;
-    border-radius: 20px;
-    backdrop-filter: blur(4px);
-}
-.product-badge-low {
-    position: absolute;
-    top: 16px; left: 16px;
-    background: rgba(217,119,6,.9);
-    color: white;
-    font-size: .8rem;
-    font-weight: 700;
-    padding: .4rem .9rem;
-    border-radius: 20px;
-}
-
-/* Info pane */
-.product-info-pane {
-    padding: 2.5rem 2.5rem 2.5rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-.product-cat-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: .3rem;
-    background: #fff0f5;
-    color: #d63384;
-    font-size: .72rem;
-    font-weight: 800;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    padding: .35rem .85rem;
-    border-radius: 20px;
-    text-decoration: none;
-    margin-bottom: .9rem;
-    width: fit-content;
-}
-.product-cat-tag:hover { background: #fce4ec; text-decoration: none; }
-
-.product-title {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 2rem;
-    font-weight: 700;
-    color: #1e1218;
-    margin-bottom: .75rem;
-    line-height: 1.25;
-}
-
-/* Stars */
-.product-stars-row {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    margin-bottom: 1.1rem;
-}
-.star-lg { font-size: 1.15rem; }
-.star-lg.full  { color: #f59e0b; }
-.star-lg.half  { color: #f59e0b; }
-.star-lg.empty { color: #e0e0e0; }
-.avg-score {
-    font-weight: 800;
-    font-size: .95rem;
-    color: #333;
-}
-.rev-link {
-    font-size: .82rem;
-    color: #888;
-    text-decoration: none;
-}
-.rev-link:hover { color: #d63384; text-decoration: underline; }
-
-/* Price */
-.product-price-row {
-    display: flex;
-    align-items: baseline;
-    gap: .5rem;
-    margin-bottom: 1.25rem;
-}
-.product-price {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.2rem;
-    font-weight: 800;
-    color: #d63384;
-}
-.product-price-note {
-    font-size: .8rem;
-    color: #16a34a;
-    font-weight: 600;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    padding: .2rem .6rem;
-    border-radius: 8px;
-}
-
-.product-desc {
-    font-size: .92rem;
-    color: #555;
-    line-height: 1.7;
-    margin-bottom: 1.5rem;
-    border-left: 3px solid #fce4ec;
-    padding-left: .85rem;
-}
-
-/* Qty + cart */
-.product-cart-row {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    margin-bottom: 1rem;
-}
-.qty-box {
-    display: flex;
-    align-items: center;
-    border: 1.5px solid #e0e0e0;
-    border-radius: 10px;
-    overflow: hidden;
-}
-.qty-btn {
-    background: none;
-    border: none;
-    width: 36px;
-    height: 44px;
-    font-size: 1.15rem;
-    cursor: pointer;
-    color: #555;
-    transition: background .15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.qty-btn:hover { background: #fce4ec; color: #d63384; }
-.qty-input {
-    width: 48px;
-    height: 44px;
-    border: none;
-    border-left: 1.5px solid #e0e0e0;
-    border-right: 1.5px solid #e0e0e0;
-    text-align: center;
-    font-size: .95rem;
-    font-weight: 700;
-    outline: none;
-    font-family: inherit;
-}
-.add-cart-btn {
-    flex: 1;
-    background: linear-gradient(135deg, #d63384, #ff4d94);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    padding: 0 1.5rem;
-    height: 44px;
-    font-size: .95rem;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: .5rem;
-    box-shadow: 0 4px 16px rgba(214,51,132,.35);
-    transition: all .25s;
-}
-.add-cart-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(214,51,132,.45); }
-
-.wishlist-btn {
-    background: none;
-    border: 1.5px solid #e0e0e0;
-    border-radius: 12px;
-    height: 44px;
-    padding: 0 1.1rem;
-    font-size: .88rem;
-    font-weight: 600;
-    color: #555;
-    cursor: pointer;
-    font-family: inherit;
-    display: flex;
-    align-items: center;
-    gap: .4rem;
-    transition: all .2s;
-}
-.wishlist-btn:hover, .wishlist-btn.wishlisted {
-    border-color: #d63384;
-    color: #d63384;
-    background: #fff0f5;
-}
-
-/* Meta badges */
-.product-meta-row {
-    display: flex;
-    gap: .5rem;
-    flex-wrap: wrap;
-    margin-top: 1.25rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid #fce4ec;
-}
-.meta-badge {
-    display: flex;
-    align-items: center;
-    gap: .35rem;
-    background: #f9fafb;
-    border: 1px solid #f0f0f0;
-    border-radius: 8px;
-    padding: .45rem .85rem;
-    font-size: .78rem;
-    color: #555;
-    font-weight: 500;
-}
-
-/* ── Related ── */
-.section-block {
-    background: white;
-    border-radius: 20px;
-    padding: 2rem 2.5rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 2px 12px rgba(0,0,0,.05);
-}
-.section-block-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.4rem;
-    margin-bottom: 1.25rem;
-    color: #1e1218;
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-}
-.related-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
-}
-.rel-card {
-    border: 1px solid #fce4ec;
-    border-radius: 14px;
-    overflow: hidden;
-    transition: transform .3s, box-shadow .3s;
-    text-decoration: none;
-    color: inherit;
-    display: block;
-    background: white;
-}
-.rel-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(214,51,132,.15); text-decoration: none; }
-.rel-img {
-    height: 160px;
-    overflow: hidden;
-    background: #fce4ec;
-}
-.rel-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform .4s;
-}
-.rel-card:hover .rel-img img { transform: scale(1.07); }
-.rel-body { padding: .8rem .9rem 1rem; }
-.rel-cat { font-size: .65rem; font-weight: 800; text-transform: uppercase; color: #d63384; letter-spacing: .06em; }
-.rel-name { font-size: .88rem; font-weight: 700; color: #1e1218; margin: .25rem 0 .4rem; line-height: 1.3; }
-.rel-price { font-weight: 800; color: #d63384; font-family: 'Playfair Display', serif; }
-
-/* ── Reviews ── */
-.reviews-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-}
-.avg-big {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    background: linear-gradient(135deg, #fff0f5, #fce4ec);
-    padding: 1.25rem 1.75rem;
-    border-radius: 14px;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-.avg-score-big {
-    font-family: 'Playfair Display', serif;
-    font-size: 3rem;
-    font-weight: 800;
-    color: #d63384;
-    line-height: 1;
-}
-.avg-stars-row { display: flex; gap: 3px; }
-.avg-star { font-size: 1.3rem; }
-.avg-star.full  { color: #f59e0b; }
-.avg-star.half  { color: #f59e0b; }
-.avg-star.empty { color: #e0e0e0; }
-.avg-count { font-size: .88rem; color: #888; margin-top: 4px; }
-
-.review-card {
-    border: 1px solid #fce4ec;
-    border-radius: 14px;
-    padding: 1.25rem 1.5rem;
-    margin-bottom: .85rem;
-    transition: box-shadow .2s;
-}
-.review-card:hover { box-shadow: 0 4px 16px rgba(214,51,132,.1); }
-.review-top {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    margin-bottom: .65rem;
-}
-.reviewer-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #d63384, #ff4d94);
-    color: white;
-    font-size: .9rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-.reviewer-name { font-weight: 700; font-size: .9rem; color: #1e1218; }
-.review-date { font-size: .75rem; color: #aaa; }
-.review-stars { display: flex; gap: 2px; }
-.rev-star { font-size: .9rem; }
-.rev-star.full  { color: #f59e0b; }
-.rev-star.empty { color: #e0e0e0; }
-.review-comment { font-size: .88rem; color: #555; line-height: 1.65; }
-
-/* Write review form */
-.write-review {
-    background: #f9fafb;
-    border: 1.5px dashed #fce4ec;
-    border-radius: 14px;
-    padding: 1.5rem;
-    margin-top: 1.5rem;
-}
-.write-review h3 { font-size: 1rem; margin-bottom: 1rem; color: #1e1218; }
-.star-picker { display: flex; gap: 6px; margin-bottom: 1rem; }
-.star-pick {
-    font-size: 1.6rem;
-    cursor: pointer;
-    color: #e0e0e0;
-    transition: transform .15s, color .15s;
-    background: none;
-    border: none;
-    padding: 0;
-    line-height: 1;
-}
-.star-pick:hover, .star-pick.on { color: #f59e0b; transform: scale(1.15); }
-.review-textarea {
-    width: 100%;
-    min-height: 90px;
-    padding: .75rem 1rem;
-    border: 1.5px solid #e0e0e0;
-    border-radius: 10px;
-    font-size: .88rem;
-    font-family: inherit;
-    resize: vertical;
-    outline: none;
-    transition: border-color .2s;
-    box-sizing: border-box;
-    margin-bottom: .75rem;
-}
-.review-textarea:focus { border-color: #d63384; }
-.submit-review-btn {
-    background: linear-gradient(135deg, #d63384, #ff4d94);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 24px;
-    font-size: .88rem;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all .25s;
-}
-.submit-review-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(214,51,132,.4); }
-
-/* Responsive */
-@media (max-width: 768px) {
-    .product-hero { grid-template-columns: 1fr; }
-    .product-img-pane { min-height: 280px; }
-    .product-info-pane { padding: 1.5rem; }
-    .product-title { font-size: 1.5rem; }
-    .related-grid { grid-template-columns: repeat(2, 1fr); }
-    .section-block { padding: 1.5rem; }
-}
-</style>
-
 <!-- Breadcrumb -->
 <div class="breadcrumb-bar">
     <a href="/bloom-aura/">Home</a>
@@ -713,7 +263,7 @@ body { background: #f5f5f7; }
                 </div>
             </form>
             <?php else: ?>
-            <p style="color:#dc2626;font-weight:600;font-size:.95rem;margin-bottom:1rem;">
+            <p class="stock-error">
                 😔 Currently out of stock — check back soon!
             </p>
             <?php endif; ?>
@@ -767,7 +317,7 @@ body { background: #f5f5f7; }
         <div class="reviews-header">
             <h2 class="section-block-title">⭐ Customer Reviews
                 <?php if ($reviewCount): ?>
-                <span style="background:#fce4ec;color:#d63384;font-size:.75rem;padding:.2rem .65rem;border-radius:20px;font-family:'Inter',sans-serif;">
+                <span class="review-badge">
                     <?= $reviewCount ?>
                 </span>
                 <?php endif; ?>
@@ -778,7 +328,7 @@ body { background: #f5f5f7; }
         <div class="avg-big">
             <div>
                 <div class="avg-score-big"><?= $avgRating ?></div>
-                <div style="font-size:.75rem;color:#888;margin-top:4px;">out of 5</div>
+                <div class="rating-label">out of 5</div>
             </div>
             <div>
                 <div class="avg-stars-row">
@@ -806,7 +356,7 @@ body { background: #f5f5f7; }
                         <div class="reviewer-name"><?= htmlspecialchars($rev['reviewer'], ENT_QUOTES, 'UTF-8') ?></div>
                         <div class="review-date"><?= date('d M Y', strtotime($rev['created_at'])) ?></div>
                     </div>
-                    <div class="review-stars" style="margin-left:auto;">
+                    <div class="review-stars-row">
                         <?php for ($i = 1; $i <= 5; $i++): ?>
                         <span class="rev-star <?= $i <= $rev['rating'] ? 'full' : 'empty' ?>">★</span>
                         <?php endfor; ?>
@@ -819,7 +369,7 @@ body { background: #f5f5f7; }
             <?php endforeach; ?>
         </div>
         <?php else: ?>
-        <p style="color:#aaa;font-size:.9rem;text-align:center;padding:2rem 0;">
+        <p class="reviews-empty">
             No reviews yet — be the first! 🌸
         </p>
         <?php endif; ?>
@@ -848,10 +398,10 @@ body { background: #f5f5f7; }
             </form>
         </div>
         <?php else: ?>
-        <div style="text-align:center;padding:1.5rem;background:#f9fafb;border-radius:12px;margin-top:1rem;">
-            <p style="color:#666;margin-bottom:.75rem;">Login to leave a review</p>
+        <div class="login-cta-box">
+            <p class="login-cta-text">Login to leave a review</p>
             <a href="/bloom-aura/pages/login.php"
-               style="background:#d63384;color:white;padding:9px 22px;border-radius:10px;font-weight:700;font-size:.85rem;text-decoration:none;">
+               class="btn btn-primary btn-sm">
                 Login to Review
             </a>
         </div>

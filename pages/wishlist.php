@@ -107,7 +107,7 @@ require_once __DIR__ . '/../includes/header.php';
 
 <div class="page-container">
     <h1 class="page-title">
-        <i class="fa-solid fa-heart" style="color: var(--color-primary);"></i> My Wishlist
+        <i class="fa-solid fa-heart" class="heart-icon"></i> My Wishlist
         <?php if (!empty($items)): ?>
             <span class="page-title-count"><?= count($items) ?> item<?= count($items) !== 1 ? 's' : '' ?></span>
         <?php endif; ?>

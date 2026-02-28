@@ -126,7 +126,7 @@ require_once __DIR__ . '/../includes/admin_header.php';
                 <input type="hidden" name="status" value="<?= htmlspecialchars($filterStatus, ENT_QUOTES, 'UTF-8') ?>">
             <?php endif; ?>
             <input type="number" name="order_id" placeholder="Order #…"
-                   value="<?= $searchId ?: '' ?>" min="1" class="admin-search-input" style="width:130px;">
+                   value="<?= $searchId ?: '' ?>" min="1" class="admin-search-input admin-search-narrow">
             <button type="submit" class="btn btn-outline btn-sm">Find</button>
             <?php if ($searchId): ?>
                 <a href="/admin/orders.php<?= $filterStatus ? '?status=' . urlencode($filterStatus) : '' ?>"
