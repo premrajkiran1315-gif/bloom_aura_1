@@ -112,6 +112,7 @@ if (!empty($_SESSION['promo_applied'])) {
 $total = $subtotal + $delivery - $discount;
 
 $pageTitle = 'My Cart — Bloom Aura';
+$pageCss = 'cart';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 

@@ -173,6 +173,7 @@ try {
 $avgRating   = (float)($ratingData['avg_rating']  ?? 0);
 $reviewCount = (int)($ratingData['review_count']   ?? 0);
 $pageTitle   = htmlspecialchars($bouquet['name'], ENT_QUOTES, 'UTF-8') . ' — Bloom Aura';
+$pageCss = 'product';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 

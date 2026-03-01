@@ -69,6 +69,7 @@ try {
 }
 
 $pageTitle = 'My Orders — Bloom Aura';
+$pageCss = 'order-history';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 

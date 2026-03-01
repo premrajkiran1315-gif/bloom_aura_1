@@ -80,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pageTitle = 'Create Account — Bloom Aura';
+$pageCss = 'auth';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 

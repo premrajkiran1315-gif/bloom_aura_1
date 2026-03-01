@@ -8,6 +8,8 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/flash.php';
+
+$pageCss = 'shop';
 require_once __DIR__ . '/../includes/header.php';
 
 const ITEMS_PER_PAGE = 12;

@@ -93,6 +93,7 @@ try {
 }
 
 $pageTitle = 'My Wishlist — Bloom Aura';
+$pageCss = 'wishlist';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 

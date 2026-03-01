@@ -32,6 +32,7 @@ try {
 }
 
 $pageTitle = 'Bloom Aura — Fresh Flowers & Gifts';
+$pageCss = 'home';
 require_once __DIR__ . '/includes/header.php';
 ?>
 

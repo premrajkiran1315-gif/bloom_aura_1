@@ -60,6 +60,7 @@ try {
 }
 
 $pageTitle = 'Order Confirmed — Bloom Aura';
+$pageCss = 'order-confirmation';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 

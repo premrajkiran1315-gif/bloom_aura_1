@@ -118,6 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pageTitle = 'Checkout — Bloom Aura';
+$pageCss = 'checkout';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
