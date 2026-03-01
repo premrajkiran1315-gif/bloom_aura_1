@@ -2,13 +2,13 @@
  * bloom-aura-1/assets/js/shop.js
  * ─────────────────────────────────────────────────────────────
  * Shop page JavaScript.
- *   – Toast notification on "Add to Cart" form submit
- *   – Sort-select auto-submit on change
- *   – Sidebar search focus ring enhancement
+ *   1. Toast notification on "Add to Cart" form submit
+ *   2. Sort-select auto-submit on change
+ *   3. Mobile sidebar filter toggle
+ *   4. Sidebar search focus ring enhancement
  *
  * Rules:
- *   ✔ No global variable pollution
- *   ✔ All code inside DOMContentLoaded
+ *   ✔ No global variable pollution (all inside IIFE + DOMContentLoaded)
  *   ✔ No inline JS in PHP/HTML
  *   ✔ No framework dependencies
  *   ✔ CSRF handled server-side via hidden input in PHP forms
@@ -20,12 +20,12 @@
 document.addEventListener('DOMContentLoaded', function () {
 
   /* ─────────────────────────────────────────────────────────
-     1. TOAST — shown when Add to Cart form is submitted.
-        Intercepts the submit, shows toast, then lets the
-        form POST naturally (full-page, no AJAX needed).
-        PHP handles the actual cart update.
+     1. TOAST
+     Shows a brief notification when "Add to Cart" is submitted.
+     The form still POSTs normally; the toast fires on submit event
+     before the page navigates (visible for ~300ms, then PHP redirects).
   ───────────────────────────────────────────────────────── */
-  var toast     = document.getElementById('shopToast');
+  var toast      = document.getElementById('shopToast');
   var toastTitle = document.getElementById('toastTitle');
   var toastSub   = document.getElementById('toastSub');
   var toastPrice = document.getElementById('toastPrice');
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!toast) return;
     if (toastTitle) toastTitle.textContent = 'Added to Cart!';
     if (toastSub)   toastSub.textContent   = name;
-    if (toastPrice) toastPrice.textContent  = price;
+    if (toastPrice) toastPrice.textContent = price;
     toast.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () {
@@ -43,23 +43,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 3000);
   }
 
-  /* Attach to every "Add" submit button on the grid */
+  /* Attach to every "Add to Cart" button that has data-name */
   document.querySelectorAll('.add-btn[data-name]').forEach(function (btn) {
-    /* The button sits inside a <form>; intercept the form's submit */
     var form = btn.closest('form');
     if (!form) return;
-
     form.addEventListener('submit', function () {
       var name  = btn.getAttribute('data-name')  || 'Item';
       var price = btn.getAttribute('data-price') || '';
       showToast(name, price);
-      /* Let the form submit normally — PHP processes cart update */
+      /* Form submits normally — PHP handles cart update + redirect */
     });
   });
 
   /* ─────────────────────────────────────────────────────────
-     2. SORT-SELECT — auto-submit on change (replaces the
-        onchange="this.form.submit()" inline attribute).
+     2. SORT-SELECT — auto-submit on change
+        Removes the need for any onchange inline attribute.
   ───────────────────────────────────────────────────────── */
   var sortSelect = document.getElementById('sort-select');
   var sortForm   = document.getElementById('sort-form');
@@ -71,36 +69,45 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ─────────────────────────────────────────────────────────
-     3. SIDEBAR SEARCH — subtle focus ring colour via JS
-        (CSS :focus-visible handles the ring; this adds
-         a matching box-shadow for older browsers).
+     3. MOBILE SIDEBAR FILTER TOGGLE
+        The "☰ Filters" button in the topbar shows/hides the
+        sidebar panel on screens ≤ 900px.
   ───────────────────────────────────────────────────────── */
-  var searchInput = document.getElementById('sidebar-search');
-  if (searchInput) {
-    searchInput.addEventListener('focus', function () {
-      searchInput.style.borderColor  = '#d63384';
-      searchInput.style.boxShadow    = '0 0 0 3px rgba(214,51,132,.10)';
-    });
-    searchInput.addEventListener('blur', function () {
-      searchInput.style.borderColor  = '';
-      searchInput.style.boxShadow    = '';
+  var filterBtn     = document.getElementById('filterToggleBtn');
+  var shopSidebar   = document.getElementById('shopSidebar');
+
+  if (filterBtn && shopSidebar) {
+    filterBtn.addEventListener('click', function () {
+      var isOpen = shopSidebar.classList.toggle('open');
+      filterBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      filterBtn.textContent = isOpen ? '✕ Close' : '☰ Filters';
     });
   }
 
   /* ─────────────────────────────────────────────────────────
-     4. WISHLIST HEART — optimistic UI feedback.
-        The form POSTs to wishlist.php; this just flips the
-        emoji instantly so the user gets immediate feedback
-        before the page reloads.
+     4. SIDEBAR SEARCH — box-shadow focus ring for older browsers
+        (CSS :focus-visible handles modern browsers already)
   ───────────────────────────────────────────────────────── */
-  document.querySelectorAll('.wishlist-form').forEach(function (form) {
-    form.addEventListener('submit', function () {
-      var btn = form.querySelector('.card-wishlist-btn');
-      if (!btn) return;
-      var isWishlisted = btn.classList.contains('wishlisted');
-      btn.textContent = isWishlisted ? '🤍' : '❤️';
-      btn.classList.toggle('wishlisted');
+  var searchInput = document.getElementById('sidebar-search');
+  if (searchInput) {
+    searchInput.addEventListener('focus', function () {
+      this.style.boxShadow = '0 0 0 3px rgba(214,51,132,.10)';
     });
+    searchInput.addEventListener('blur', function () {
+      this.style.boxShadow = '';
+    });
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     5. FLASH MESSAGE AUTO-DISMISS
+        Dismisses any alert/flash messages after 4 seconds.
+  ───────────────────────────────────────────────────────── */
+  document.querySelectorAll('.alert').forEach(function (alert) {
+    setTimeout(function () {
+      alert.style.transition = 'opacity .4s';
+      alert.style.opacity    = '0';
+      setTimeout(function () { alert.remove(); }, 400);
+    }, 4000);
   });
 
 });
