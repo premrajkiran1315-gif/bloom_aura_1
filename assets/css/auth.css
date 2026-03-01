@@ -1,98 +1,423 @@
 /**
  * bloom-aura-1/assets/css/auth.css
  * ─────────────────────────────────────────────────────────────
- * Styles for: pages/login.php  AND  pages/register.php
- * Requires: base.css loaded first (provides .auth-bg, .auth-card,
- *           .auth-logo, .auth-title, .auth-sub, .auth-switch,
- *           .auth-divider, and dark-mode form overrides).
+ * Login + Register page styles.
+ * Loaded via header.php when $pageCss = 'auth'.
+ * Requires base.css first (variables, reset, fonts).
+ *
+ * UI REFERENCE: bloom_aura.html (single-file reference project)
+ * Every class name, colour, spacing and micro-interaction below
+ * has been verified against that reference.
  * ─────────────────────────────────────────────────────────────
  */
 
 /* ═══════════════════════════════════════════════════════
-   TAB SWITCHER (login page — Sign In / Register tabs)
+   FULL-PAGE DARK WRAPPER
+   Overrides the default body background only on login page.
+   Use <body class="login-body"> in header.php when $pageCss='auth'
+   OR wrap the entire login content in .login-page-wrap (used here).
 ═══════════════════════════════════════════════════════ */
-.auth-tab-bar {
-  background: rgba(255,255,255,.06);
-  border-radius: 14px; padding: 5px;
-  display: flex; gap: 4px; margin-bottom: 2rem;
+.login-page-wrap {
+  min-height: 100vh;
+  background: #120818;           /* deep dark plum — reference exact value */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  position: relative;
+  overflow: hidden;
 }
-.auth-tab {
-  flex: 1; padding: 11px; border: none; border-radius: 10px;
-  font-size: .9rem; font-weight: 600; cursor: pointer;
-  transition: all .25s; font-family: inherit;
-  background: transparent; color: rgba(255,255,255,.45);
+
+/* Radial glow orbs — absolutely positioned decorative blobs */
+.login-page-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
 }
-.auth-tab.active {
-  background: linear-gradient(135deg, #d63384, #e91e8c);
-  color: #fff; box-shadow: 0 4px 16px rgba(214,51,132,.4);
+.login-page-bg::before {
+  content: '';
+  position: absolute;
+  top: -10%; left: -10%;
+  width: 60%; height: 60%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(214,51,132,.22) 0%, transparent 65%);
+}
+.login-page-bg::after {
+  content: '';
+  position: absolute;
+  bottom: -10%; right: -10%;
+  width: 55%; height: 55%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(173,20,87,.18) 0%, transparent 65%);
+}
+
+/* Inner centering column */
+.login-page-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 520px;          /* reference: 520px — wider than old 480px auth-card */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* ═══════════════════════════════════════════════════════
-   SOCIAL LOGIN BUTTONS
+   LOGO
+   Reference: font-size 1.6rem, colour #e8a4b8 (blush),
+   hover to #ff79b0, italic "Bloom", Playfair Display
 ═══════════════════════════════════════════════════════ */
-.social-row { display: flex; gap: .75rem; margin-bottom: 1rem; }
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #e8a4b8;
+  text-decoration: none;
+  margin-bottom: 2rem;
+  letter-spacing: -.2px;
+}
+.login-logo em    { font-style: italic; }
+.login-logo:hover { color: #ff79b0; text-decoration: none; }
+
+/* ═══════════════════════════════════════════════════════
+   CARD
+   Glassmorphism on dark: translucent white, blurred border
+═══════════════════════════════════════════════════════ */
+.login-card {
+  width: 100%;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Flash messages inside card */
+.flash-msg {
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: .85rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.flash-success { background: rgba(22,163,74,.15); border: 1px solid rgba(22,163,74,.3); color: #86efac; }
+.flash-error   { background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.25); color: #fca5a5; }
+.flash-info    { background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.25); color: #93c5fd; }
+
+/* ═══════════════════════════════════════════════════════
+   TAB BAR  (Sign In | Create Account)
+   Reference: .login-tab-bar / .ltab / .ltab.active
+═══════════════════════════════════════════════════════ */
+.login-tab-bar {
+  background: rgba(255,255,255,.06);
+  border-radius: 14px;
+  padding: 5px;
+  display: flex;
+  gap: 4px;
+  margin-bottom: 32px;
+}
+.ltab {
+  flex: 1;
+  padding: 11px;
+  border: none;
+  border-radius: 10px;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .25s;
+  font-family: inherit;
+  background: transparent;
+  color: rgba(255,255,255,.45);
+}
+.ltab.active {
+  background: linear-gradient(135deg, #d63384, #e91e8c);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(214,51,132,.4);
+}
+
+/* ═══════════════════════════════════════════════════════
+   PANEL HEADER  (icon + title + subtitle)
+═══════════════════════════════════════════════════════ */
+.login-panel-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.login-panel-icon  { font-size: 2.8rem; margin-bottom: 12px; line-height: 1; }
+.login-panel-title { color: #fff; font-size: 1.75rem; font-weight: 700; margin: 0 0 6px; font-family: var(--font-display); }
+.login-panel-sub   { color: rgba(255,255,255,.4); font-size: .88rem; margin: 0; }
+
+/* ═══════════════════════════════════════════════════════
+   SOCIAL BUTTONS  (Google + Apple)
+   Reference: .social-btn — glass style, hover lift
+═══════════════════════════════════════════════════════ */
+.login-social-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 4px;
+}
 .social-btn {
-  flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   padding: 13px 16px;
-  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
-  border-radius: 12px; color: #fff; font-size: .88rem; font-weight: 600;
-  cursor: pointer; transition: all .2s; font-family: inherit;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px;
+  color: #fff;
+  font-size: .88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: inherit;
 }
 .social-btn:hover {
-  background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.2);
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,255,255,.2);
   transform: translateY(-2px);
 }
 
 /* ═══════════════════════════════════════════════════════
-   FIELD ICON WRAPPER
+   DIVIDER  "or sign in with email"
 ═══════════════════════════════════════════════════════ */
-.field-icon-wrap { position: relative; }
-.field-icon-wrap .field-icon {
-  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-  font-size: 1rem; color: rgba(255,255,255,.35); pointer-events: none;
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 20px 0;
 }
-.field-icon-wrap input { padding-left: 40px !important; }
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,.08);
+}
+.login-divider span {
+  color: rgba(255,255,255,.3);
+  font-size: .75rem;
+  white-space: nowrap;
+}
 
-/* Toggle password visibility */
-.pw-toggle {
-  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-  background: none; border: none; color: rgba(255,255,255,.35);
-  font-size: .9rem; cursor: pointer; padding: 4px;
+/* ═══════════════════════════════════════════════════════
+   GENERAL ERROR BOX  (brute-force, wrong password, etc.)
+   Reference: .login-error-dark
+═══════════════════════════════════════════════════════ */
+.login-error-dark {
+  background: rgba(239,68,68,.12);
+  border: 1px solid rgba(239,68,68,.25);
+  color: #fca5a5;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: .82rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   FIELD WRAPPER  .lfield-wrap / .lfield / .lfield-label
+   Reference: exact class names from bloom_aura.html
+   - Label: uppercase, tiny tracking, muted white
+   - Input: dark glass, 12px radius, icon padding both sides
+   - Left icon: .lfield-icon (emoji)
+   - Right bloom: .lfield-bloom (decorative 🌸)
+   - Right toggle: .lfield-end (password show/hide button)
+═══════════════════════════════════════════════════════ */
+.lfield-wrap { margin-bottom: 16px; }
+
+.lfield-label {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.35);
+  display: block;
+  margin-bottom: 7px;
+}
+
+.lfield { position: relative; }
+
+/* Left icon */
+.lfield-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  opacity: .5;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Right decorative bloom 🌸 */
+.lfield-bloom {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  opacity: .3;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Right button (password toggle) — replaces .lfield-bloom when present */
+.lfield-end {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  opacity: .4;
+  color: #fff;
+  padding: 4px;
+  line-height: 1;
+  z-index: 2;
+  transition: opacity .2s;
+}
+.lfield-end:hover { opacity: .75; }
+
+/* The actual input */
+.lfield input {
+  width: 100%;
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid rgba(255,255,255,.1);
+  border-radius: 12px;
+  /* left pad: 14+icon+gap=42px  right pad: same for bloom/toggle */
+  padding: 13px 42px 13px 42px;
+  color: #fff;
+  font-size: .92rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .2s, background .2s;
+  box-sizing: border-box;
+}
+.lfield input::placeholder { color: rgba(255,255,255,.25); }
+.lfield input:focus {
+  border-color: #d63384;
+  background: rgba(214,51,132,.07);
+}
+/* Autofill override — keep dark bg */
+.lfield input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 30px #1e0c28 inset !important;
+  -webkit-text-fill-color: #fff !important;
+}
+
+/* Inline field errors */
+.field-error-dark {
+  font-size: .75rem;
+  color: #fca5a5;
+  margin-top: 5px;
+  padding-left: 2px;
+}
+
+/* Password strength hint (live, JS-updated) */
+.pass-hint-new {
+  font-size: .7rem;
+  color: rgba(255,255,255,.3);
+  margin-top: 5px;
+  padding-left: 2px;
+  min-height: 16px;
   transition: color .2s;
 }
-.pw-toggle:hover { color: rgba(255,255,255,.7); }
 
-/* Forgot password link */
-.forgot-link {
-  text-align: right; margin-top: -.5rem; margin-bottom: 1rem;
+/* ═══════════════════════════════════════════════════════
+   FORGOT PASSWORD ROW
+   Reference: .forgot-link → right-aligned, muted
+═══════════════════════════════════════════════════════ */
+.forgot-row {
+  text-align: right;
+  margin-bottom: 20px;
 }
-.forgot-link a {
-  font-size: .8rem; color: rgba(255,255,255,.35);
+.forgot-row a {
+  color: rgba(255,255,255,.4);
+  font-size: .8rem;
+  text-decoration: none;
   transition: color .2s;
 }
-.forgot-link a:hover { color: var(--color-primary); text-decoration: none; }
+.forgot-row a:hover { color: #ff79b0; }
 
-/* Login error banner */
-.login-error {
-  background: rgba(220,38,38,.12); border: 1px solid rgba(220,38,38,.3);
-  color: #fca5a5; border-radius: 8px;
-  padding: 9px 14px; font-size: .82rem;
-  margin-bottom: 1rem; font-weight: 600;
+/* ═══════════════════════════════════════════════════════
+   SUBMIT BUTTON
+   Reference: .login-main-btn — gradient, lift hover
+═══════════════════════════════════════════════════════ */
+.login-main-btn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #d63384, #ff4d94);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(214,51,132,.4);
+  transition: all .25s;
+  font-family: inherit;
+  letter-spacing: .3px;
 }
+.login-main-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(214,51,132,.55);
+}
+.login-main-btn:active { transform: translateY(0); }
 
-/* Password hint / strength note */
-.pass-hint {
-  font-size: .7rem; color: rgba(255,255,255,.3);
-  margin-top: 5px; min-height: 16px;
+/* ═══════════════════════════════════════════════════════
+   FOOTER TEXT  "No account? Create one free →"
+   Reference: .login-footer-text — muted, pink link
+═══════════════════════════════════════════════════════ */
+.login-footer-text {
+  text-align: center;
+  color: rgba(255,255,255,.3);
+  font-size: .8rem;
+  margin-top: 20px;
 }
+.login-footer-text a {
+  color: #ff79b0;
+  font-weight: 700;
+  text-decoration: none;
+}
+.login-footer-text a:hover { text-decoration: underline; }
 
-/* Back to home link */
-.back-home {
-  text-align: center; margin-top: 1rem;
+/* ═══════════════════════════════════════════════════════
+   GHOST LINKS ROW  "← Back to home  ·  Browse as guest"
+   Reference: bare unstyled buttons in very muted white
+═══════════════════════════════════════════════════════ */
+.login-bottom-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  margin-top: 14px;
 }
-.back-home button {
-  background: none; border: none;
-  color: rgba(255,255,255,.25); font-size: .78rem;
-  cursor: pointer; font-family: inherit; transition: color .2s;
+.login-bottom-links button {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,.25);
+  font-size: .78rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color .2s;
+  padding: 2px 4px;
 }
-.back-home button:hover { color: rgba(255,255,255,.55); }
+.login-bottom-links button:hover { color: rgba(255,255,255,.55); }
+.login-bottom-links span          { color: rgba(255,255,255,.15); font-size: .78rem; }
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE — tighten card padding on mobile
+═══════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .login-card          { padding: 2rem 1.25rem; }
+  .login-panel-title   { font-size: 1.4rem; }
+  .login-social-row    { flex-direction: column; }
+  .social-btn          { justify-content: center; }
+}

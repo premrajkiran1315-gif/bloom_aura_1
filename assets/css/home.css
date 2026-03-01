@@ -3,6 +3,7 @@
  * ─────────────────────────────────────────────────────────────
  * Styles for: index.php (Homepage only)
  * Requires: base.css loaded first.
+ * Synced to bloom_aura reference UI.
  * ─────────────────────────────────────────────────────────────
  */
 
@@ -11,20 +12,42 @@
 ═══════════════════════════════════════════════════════ */
 .hero-section {
   background: linear-gradient(135deg, #b5005b 0%, #d63384 45%, #ff4d94 75%, #ffb3d1 100%);
-  min-height: 85vh;
+  min-height: 88vh; /* reference: 88vh */
   display: flex; align-items: center; justify-content: center;
   text-align: center;
   padding: 5rem 1.25rem 4rem;
   position: relative; overflow: hidden;
 }
+
+/* Top radial light overlay */
 .hero-section::before {
   content: '';
   position: absolute; inset: 0;
   background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.12) 0%, transparent 65%);
   pointer-events: none;
 }
-.hero-inner { position: relative; z-index: 1; max-width: 680px; }
 
+.hero-inner { position: relative; z-index: 1; max-width: 700px; }
+
+/* ── Floating petal decorations ── */
+.hero-deco {
+  position: absolute;
+  pointer-events: none;
+  font-size: 1.8rem;
+  opacity: .18;
+  animation: floatPetal 6s ease-in-out infinite alternate;
+}
+.hero-deco:nth-child(1) { top: 15%; left:  8%; animation-delay: 0s; }
+.hero-deco:nth-child(2) { top: 60%; left:  4%; animation-delay: 1.5s; }
+.hero-deco:nth-child(3) { top: 20%; right: 7%; animation-delay: .8s; }
+.hero-deco:nth-child(4) { bottom: 20%; right: 5%; animation-delay: 2s; }
+
+@keyframes floatPetal {
+  from { transform: translateY(0)     rotate(0deg);  }
+  to   { transform: translateY(-18px) rotate(15deg); }
+}
+
+/* ── Badge pill ── */
 .hero-badge {
   display: inline-flex; align-items: center; gap: .4rem;
   background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.3);
@@ -32,23 +55,53 @@
   font-size: .8rem; font-weight: 700; color: #fff; letter-spacing: .04em;
   margin-bottom: 1.5rem; backdrop-filter: blur(6px);
 }
+
+/* ── Title ── */
 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(2.2rem, 6vw, 3.6rem);
-  color: #fff; line-height: 1.15;
+  font-size: clamp(2.4rem, 6vw, 4rem); /* reference: 2.4–4rem */
+  color: #fff; line-height: 1.18;
   margin-bottom: 1.25rem;
+  text-shadow: 0 2px 20px rgba(0,0,0,.15);
 }
-.hero-title em { font-style: italic; }
+.hero-title em {
+  font-style: italic;
+  color: #ffe0ef; /* reference: soft pink tint */
+}
 
-.hero-subtitle {
-  font-size: 1.05rem; color: rgba(255,255,255,.82);
-  max-width: 520px; margin: 0 auto 2.25rem;
+/* ── Subtitle ── */
+.hero-sub {
+  font-size: 1.05rem; color: rgba(255,255,255,.85);
+  max-width: 520px; margin: 0 auto 1.5rem;
   line-height: 1.65;
 }
+
+/* ── Service tag pills ── */
+.hero-pills {
+  display: flex;
+  justify-content: center;
+  gap: .55rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.75rem;
+}
+.hero-pill {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.25);
+  color: #fff;
+  padding: 7px 16px;
+  border-radius: 30px;
+  font-size: .78rem;
+  font-weight: 600;
+  backdrop-filter: blur(6px);
+  transition: transform .2s;
+}
+
+/* ── CTA row ── */
 .hero-cta-row {
   display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
   margin-bottom: 2rem;
 }
+
 .hero-btn-primary {
   background: #fff; color: var(--color-primary); border: 2px solid #fff;
   padding: 14px 38px; border-radius: 50px; font-size: 1rem; font-weight: 700;
@@ -61,6 +114,7 @@
   transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,.2);
   text-decoration: none;
 }
+
 .hero-btn-ghost {
   background: rgba(255,255,255,.15); color: #fff; border: 2px solid rgba(255,255,255,.5);
   padding: 14px 36px; border-radius: 50px; font-size: 1rem; font-weight: 700;
@@ -72,25 +126,13 @@
   background: rgba(255,255,255,.28); border-color: rgba(255,255,255,.8);
   transform: translateY(-2px); text-decoration: none; color: #fff;
 }
+
+/* ── Trust badges ── */
 .hero-trust {
   display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;
   color: rgba(255,255,255,.75); font-size: .82rem; font-weight: 600;
 }
 .hero-trust span { display: flex; align-items: center; gap: .3rem; }
-
-/* Floating petal decorations */
-.hero-deco {
-  position: absolute; pointer-events: none; font-size: 1.8rem; opacity: .18;
-  animation: floatPetal 6s ease-in-out infinite alternate;
-}
-.hero-deco:nth-child(1) { top: 15%; left: 8%; animation-delay: 0s; }
-.hero-deco:nth-child(2) { top: 60%; left: 4%; animation-delay: 1.5s; }
-.hero-deco:nth-child(3) { top: 20%; right: 7%; animation-delay: .8s; }
-.hero-deco:nth-child(4) { bottom: 20%; right: 5%; animation-delay: 2s; }
-@keyframes floatPetal {
-  from { transform: translateY(0) rotate(0deg); }
-  to   { transform: translateY(-18px) rotate(15deg); }
-}
 
 /* ═══════════════════════════════════════════════════════
    CATEGORY STRIP
@@ -111,22 +153,46 @@
 .cat-pill.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
 
 /* ═══════════════════════════════════════════════════════
-   FEATURED / NEW ARRIVALS SECTION
+   FEATURED / NEW ARRIVALS
 ═══════════════════════════════════════════════════════ */
 .featured-section { padding: 3rem 1rem; }
 .featured-header  { text-align: center; margin-bottom: 2rem; }
 .featured-header p { color: var(--color-text-muted); margin-top: .4rem; }
 
-.view-all-row { text-align: center; margin: 2.5rem 0 1rem; }
+/* View All row */
+.view-all-center {
+  text-align: center;
+  margin: 2.5rem 0 1rem;
+}
+
+/* Wishlist heart button on product cards */
+.card-wishlist-btn {
+  position: absolute;
+  top: .6rem; right: .6rem;
+  background: rgba(255,255,255,.85);
+  border: none; border-radius: 50%;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+  backdrop-filter: blur(4px);
+  z-index: 2;
+}
+.card-wishlist-btn:hover      { background: #fff; transform: scale(1.12); }
+.card-wishlist-btn.wishlisted { color: var(--color-primary); }
 
 /* ═══════════════════════════════════════════════════════
-   WHY CHOOSE US SECTION
+   WHY BLOOM AURA
 ═══════════════════════════════════════════════════════ */
 .why-section {
   background: linear-gradient(135deg, var(--color-primary-xl), var(--color-primary-l));
   padding: 4rem 1rem; margin-top: 3rem;
 }
-.why-section .section-header { justify-content: center; text-align: center; }
+
+.page-section-title {
+  text-align: center;
+  margin-bottom: 2rem;
+}
 
 .why-grid {
   display: grid;
@@ -139,35 +205,64 @@
   text-align: center; box-shadow: 0 4px 16px rgba(214,51,132,.08);
   border: 1px solid var(--color-primary-l); transition: transform .3s;
 }
-.why-card:hover  { transform: translateY(-4px); }
-.why-icon        { font-size: 2.2rem; margin-bottom: .75rem; }
-.why-card h3     { font-size: 1rem; margin-bottom: .4rem; }
-.why-card p      { font-size: .85rem; color: #777; line-height: 1.5; }
+.why-card:hover { transform: translateY(-4px); }
+.why-icon       { font-size: 2.2rem; margin-bottom: .75rem; }
+.why-card h3    { font-size: 1rem; margin-bottom: .4rem; }
+.why-card p     { font-size: .85rem; color: #777; line-height: 1.5; }
 
 /* ═══════════════════════════════════════════════════════
-   NEWSLETTER STRIP (optional homepage section)
+   NEWSLETTER STRIP
 ═══════════════════════════════════════════════════════ */
 .newsletter-strip {
   background: linear-gradient(135deg, #b5005b, #d63384);
   padding: 3rem 1.25rem; text-align: center;
 }
-.newsletter-strip h2 { color: #fff; font-size: 1.6rem; margin-bottom: .5rem; }
-.newsletter-strip p  { color: rgba(255,255,255,.75); margin-bottom: 1.5rem; font-size: .92rem; }
+.newsletter-strip h2 {
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 1.6rem; margin-bottom: .5rem;
+}
+.newsletter-strip > p {
+  color: rgba(255,255,255,.75);
+  margin-bottom: 1.5rem; font-size: .92rem;
+}
 .newsletter-form {
-  display: flex; gap: .6rem; max-width: 420px; margin: 0 auto;
+  display: flex; gap: .6rem;
+  max-width: 420px; margin: 0 auto;
 }
 .newsletter-form input {
   flex: 1; padding: .75rem 1rem;
-  border: 2px solid rgba(255,255,255,.3); border-radius: var(--radius-xl);
-  background: rgba(255,255,255,.12); color: #fff; font-size: .9rem; font-family: inherit;
-  outline: none;
+  border: 2px solid rgba(255,255,255,.3);
+  border-radius: var(--radius-xl);
+  background: rgba(255,255,255,.12); color: #fff;
+  font-size: .9rem; font-family: inherit; outline: none;
+  transition: border-color var(--transition);
 }
 .newsletter-form input::placeholder { color: rgba(255,255,255,.5); }
-.newsletter-form input:focus { border-color: rgba(255,255,255,.7); }
+.newsletter-form input:focus        { border-color: rgba(255,255,255,.7); }
 .newsletter-form button {
   background: #fff; color: var(--color-primary);
   border: none; border-radius: var(--radius-xl);
   padding: .75rem 1.5rem; font-weight: 700; font-size: .9rem;
-  transition: all .2s;
+  transition: all .2s; white-space: nowrap;
 }
 .newsletter-form button:hover { background: var(--color-primary-l); }
+.newsletter-error {
+  color: #ffd5e5; font-size: .78rem;
+  margin-top: .6rem; display: none;
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE OVERRIDES (homepage-specific only)
+═══════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .hero-section    { min-height: 70vh; padding: 4rem 1rem; }
+  .hero-title      { font-size: 2rem; }
+  .hero-pills      { gap: .35rem; }
+  .hero-pill       { font-size: .72rem; padding: 6px 12px; }
+  .hero-cta-row    { flex-direction: column; align-items: center; }
+  .hero-btn-primary,
+  .hero-btn-ghost  { width: 100%; max-width: 280px; justify-content: center; }
+  .newsletter-form { flex-direction: column; }
+  .newsletter-form button { width: 100%; }
+}

@@ -93,6 +93,11 @@ $safeCssSlug = in_array($pageCss ?? '', $allowedPageCss, true) ? ($pageCss ?? ''
 
     <!-- ③ Responsive breakpoints — ALWAYS last -->
     <link rel="stylesheet" href="/bloom-aura/assets/css/responsive.css">
+
+    <!-- Home page JS — loaded conditionally -->
+    <?php if (($pageCss ?? '') === 'home'): ?>
+    <script src="/bloom-aura/assets/js/home.js" defer></script>
+    <?php endif; ?>
 </head>
 <body>
 

@@ -2,6 +2,8 @@
 /**
  * bloom-aura/index.php
  * Homepage — hero banner + featured products.
+ * UI synced to bloom_aura reference: correct hero copy, tag pills,
+ * floating petals, wishlist buttons on cards, newsletter strip.
  */
 
 session_start();
@@ -9,7 +11,7 @@ require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/includes/csrf.php';
 require_once __DIR__ . '/includes/flash.php';
 
-// Fetch featured/latest bouquets
+/* ── Fetch featured/latest bouquets ── */
 $featured = [];
 try {
     $pdo  = getPDO();
@@ -18,44 +20,76 @@ try {
                 c.name AS category_name,
                 ROUND(COALESCE(AVG(r.rating), 0), 1) AS avg_rating,
                 COUNT(r.id) AS review_count
-         FROM bouquets b
-         LEFT JOIN categories c  ON c.id = b.category_id
-         LEFT JOIN reviews   r  ON r.bouquet_id = b.id
-         WHERE b.is_active = 1
-         GROUP BY b.id, c.name
-         ORDER BY b.created_at DESC
-         LIMIT 8"
+         FROM   bouquets b
+         LEFT JOIN categories c ON c.id = b.category_id
+         LEFT JOIN reviews    r ON r.bouquet_id = b.id
+         WHERE  b.is_active = 1
+         GROUP  BY b.id, c.name
+         ORDER  BY b.created_at DESC
+         LIMIT  8"
     );
     $featured = $stmt->fetchAll();
 } catch (RuntimeException $e) {
     $featured = [];
 }
 
+/* ── Wishlist lookup (only when logged in) ── */
+$wishlistIds = [];
+if (!empty($_SESSION['user_id'])) {
+    try {
+        $pdo  = getPDO();
+        $stmt = $pdo->prepare(
+            "SELECT bouquet_id FROM wishlists WHERE user_id = ?"
+        );
+        $stmt->execute([$_SESSION['user_id']]);
+        $wishlistIds = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+    } catch (\Exception $e) {
+        $wishlistIds = [];
+    }
+}
+
 $pageTitle = 'Bloom Aura — Fresh Flowers & Gifts';
-$pageCss = 'home';
+$pageCss   = 'home';
 require_once __DIR__ . '/includes/header.php';
 ?>
 
 <!-- ═══════════════════════════════════════════
-     HERO — dark gradient matching reference
+     HERO
 ════════════════════════════════════════════ -->
-<section class="hero-section">
-    <!-- Decorative blobs (like reference radial gradients) -->
-    <div class="hero-blob hero-blob--top"></div>
-    <div class="hero-blob hero-blob--bottom"></div>
+<section class="hero-section" aria-label="Hero banner">
+
+    <!-- Floating petal decorations (match reference) -->
+    <span class="hero-deco" aria-hidden="true">🌸</span>
+    <span class="hero-deco" aria-hidden="true">🌺</span>
+    <span class="hero-deco" aria-hidden="true">🌷</span>
+    <span class="hero-deco" aria-hidden="true">💐</span>
+
+    <!-- Decorative blobs -->
+    <div class="hero-blob hero-blob--top"   aria-hidden="true"></div>
+    <div class="hero-blob hero-blob--bottom" aria-hidden="true"></div>
 
     <div class="hero-inner">
+
         <div class="hero-badge">🌸 Same-Day Delivery Available</div>
 
+        <!-- Reference title: BloomAura + tagline -->
         <h1 class="hero-title">
-            Fresh Blooms,<br>
-            <em>Delivered with Love</em>
+            BloomAura<br>
+            <em>"Where Every Petal Tells a Story"</em>
         </h1>
 
         <p class="hero-sub">
-            Hand-crafted bouquets, hampers &amp; gifts for every occasion.<br>
-            Surprise someone special today.
+            Bouquets &middot; Hampers &middot; Calligraphy &middot; Handcrafted Gifts
         </p>
+
+        <!-- Service tag pills (matching reference glass pills row) -->
+        <div class="hero-pills" aria-label="Our offerings">
+            <span class="hero-pill">💐 Custom Bouquets</span>
+            <span class="hero-pill">🎁 Gift Hampers</span>
+            <span class="hero-pill">✍️ Calligraphy</span>
+            <span class="hero-pill">🍫 Chocolate Gifts</span>
+            <span class="hero-pill">💌 Made With Love</span>
+        </div>
 
         <div class="hero-cta-row">
             <a href="/bloom-aura/pages/shop.php" class="hero-btn-primary">
@@ -69,28 +103,29 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <!-- Trust badges -->
-        <div class="hero-trust">
+        <div class="hero-trust" aria-label="Trust indicators">
             <span>✅ 500+ Happy Customers</span>
             <span>🚚 Free Delivery over ₹999</span>
             <span>⭐ 4.8/5 Rating</span>
         </div>
+
     </div>
 </section>
 
 <!-- ═══════════════════════════════════════════
      CATEGORY PILLS
 ════════════════════════════════════════════ -->
-<div class="category-strip">
-    <a href="/bloom-aura/pages/shop.php" class="cat-pill active">🌺 All</a>
+<nav class="category-strip" aria-label="Browse by category">
+    <a href="/bloom-aura/pages/shop.php"                 class="cat-pill active">🌺 All</a>
     <a href="/bloom-aura/pages/shop.php?cat=bouquets"   class="cat-pill">💐 Bouquets</a>
     <a href="/bloom-aura/pages/shop.php?cat=hampers"    class="cat-pill">🎁 Hampers</a>
     <a href="/bloom-aura/pages/shop.php?cat=chocolates" class="cat-pill">🍫 Chocolates</a>
     <a href="/bloom-aura/pages/shop.php?cat=perfumes"   class="cat-pill">🌹 Perfumes</a>
     <a href="/bloom-aura/pages/shop.php?cat=plants"     class="cat-pill">🪴 Plants</a>
-</div>
+</nav>
 
 <!-- ═══════════════════════════════════════════
-     FEATURED PRODUCTS
+     FEATURED / NEW ARRIVALS
 ════════════════════════════════════════════ -->
 <div class="page-container">
 
@@ -100,7 +135,6 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 
     <?php if (empty($featured)): ?>
-        <!-- Empty state — DB not set up yet -->
         <div class="empty-state">
             <div class="empty-icon">🌷</div>
             <h2>No products yet</h2>
@@ -111,14 +145,17 @@ require_once __DIR__ . '/includes/header.php';
     <?php else: ?>
         <div class="product-grid">
             <?php foreach ($featured as $b): ?>
+                <?php
+                $isWishlisted = in_array((int)$b['id'], array_map('intval', $wishlistIds), true);
+                ?>
                 <article class="product-card">
 
-                    <!-- Image -->
+                    <!-- Image + wishlist toggle -->
                     <a href="/bloom-aura/pages/product.php?slug=<?= urlencode($b['slug']) ?>"
                        class="card-img-wrap">
                         <img
                             src="/bloom-aura/uploads/<?= htmlspecialchars($b['image'], ENT_QUOTES, 'UTF-8') ?>"
-                            alt="<?= htmlspecialchars($b['name'], ENT_QUOTES, 'UTF-8') ?>"
+                            alt="<?= htmlspecialchars($b['name'],  ENT_QUOTES, 'UTF-8') ?>"
                             loading="lazy"
                             onerror="this.src='/bloom-aura/assets/img/placeholder.jpg'"
                         >
@@ -129,7 +166,24 @@ require_once __DIR__ . '/includes/header.php';
                         <?php endif; ?>
                     </a>
 
-                    <!-- Body -->
+                    <!-- Wishlist heart button -->
+                    <?php if (!empty($_SESSION['user_id'])): ?>
+                    <form action="/bloom-aura/pages/wishlist.php" method="POST">
+                        <?php csrf_field(); ?>
+                        <input type="hidden" name="action"     value="toggle">
+                        <input type="hidden" name="bouquet_id" value="<?= (int)$b['id'] ?>">
+                        <button
+                            type="submit"
+                            class="card-wishlist-btn <?= $isWishlisted ? 'wishlisted' : '' ?>"
+                            aria-label="<?= $isWishlisted ? 'Remove from wishlist' : 'Add to wishlist' ?>"
+                            title="<?= $isWishlisted ? 'Remove from wishlist' : 'Save to wishlist' ?>"
+                        >
+                            <?= $isWishlisted ? '❤️' : '🤍' ?>
+                        </button>
+                    </form>
+                    <?php endif; ?>
+
+                    <!-- Card body -->
                     <div class="card-body">
                         <p class="card-category">
                             <?= htmlspecialchars($b['category_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>
@@ -142,13 +196,13 @@ require_once __DIR__ . '/includes/header.php';
 
                         <!-- Stars -->
                         <?php if ($b['review_count'] > 0): ?>
-                        <div class="card-stars">
+                        <div class="card-stars" aria-label="Rating: <?= $b['avg_rating'] ?> out of 5">
                             <?php
                             $avg = (float)$b['avg_rating'];
                             for ($i = 1; $i <= 5; $i++):
                                 $cls = $avg >= $i ? 'full' : ($avg >= $i - 0.5 ? 'half' : 'empty');
                             ?>
-                                <span class="star <?= $cls ?>">★</span>
+                                <span class="star <?= $cls ?>" aria-hidden="true">★</span>
                             <?php endfor; ?>
                             <span class="review-count">(<?= (int)$b['review_count'] ?>)</span>
                         </div>
@@ -167,12 +221,11 @@ require_once __DIR__ . '/includes/header.php';
                                     </button>
                                 </form>
                             <?php else: ?>
-                                <button class="btn btn-sm btn-disabled" disabled>
-                                    Sold Out
-                                </button>
+                                <button class="btn btn-sm btn-disabled" disabled>Sold Out</button>
                             <?php endif; ?>
                         </div>
                     </div>
+
                 </article>
             <?php endforeach; ?>
         </div>
@@ -182,35 +235,36 @@ require_once __DIR__ . '/includes/header.php';
                 View All Products →
             </a>
         </div>
+
     <?php endif; ?>
 </div>
 
 <!-- ═══════════════════════════════════════════
-     WHY BLOOM AURA SECTION
+     WHY BLOOM AURA
 ════════════════════════════════════════════ -->
-<section class="why-section">
+<section class="why-section" aria-labelledby="why-heading">
     <div class="page-container">
-        <h2 class="section-title page-section-title">
+        <h2 class="section-title page-section-title" id="why-heading">
             💖 Why Choose Bloom Aura?
         </h2>
         <div class="why-grid">
             <div class="why-card">
-                <div class="why-icon">🌸</div>
+                <div class="why-icon" aria-hidden="true">🌸</div>
                 <h3>Fresh Every Day</h3>
                 <p>Flowers sourced fresh daily. No wilted blooms — ever.</p>
             </div>
             <div class="why-card">
-                <div class="why-icon">🚚</div>
+                <div class="why-icon" aria-hidden="true">🚚</div>
                 <h3>Same-Day Delivery</h3>
                 <p>Order before 2 PM and we deliver the same day.</p>
             </div>
             <div class="why-card">
-                <div class="why-icon">🎨</div>
+                <div class="why-icon" aria-hidden="true">🎨</div>
                 <h3>Custom Bouquets</h3>
-                <p>Pick your flowers, colours & wrapping — made just for you.</p>
+                <p>Pick your flowers, colours &amp; wrapping — made just for you.</p>
             </div>
             <div class="why-card">
-                <div class="why-icon">⭐</div>
+                <div class="why-icon" aria-hidden="true">⭐</div>
                 <h3>500+ Happy Customers</h3>
                 <p>Rated 4.8/5 by our lovely community of customers.</p>
             </div>
@@ -218,6 +272,25 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </section>
 
-
+<!-- ═══════════════════════════════════════════
+     NEWSLETTER STRIP
+════════════════════════════════════════════ -->
+<section class="newsletter-strip" aria-labelledby="newsletter-heading">
+    <h2 id="newsletter-heading">🌺 Stay in Bloom</h2>
+    <p>Get exclusive deals, new arrivals &amp; seasonal offers straight to your inbox.</p>
+    <form class="newsletter-form" id="newsletter-form" novalidate>
+        <label for="newsletter-email" class="sr-only">Your email address</label>
+        <input
+            type="email"
+            id="newsletter-email"
+            name="email"
+            placeholder="your@email.com"
+            autocomplete="email"
+            required
+        >
+        <button type="submit">Subscribe</button>
+    </form>
+    <p class="newsletter-error" id="newsletter-error" role="alert" aria-live="polite"></p>
+</section>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
