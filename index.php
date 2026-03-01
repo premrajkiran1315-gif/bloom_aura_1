@@ -1,9 +1,9 @@
 <?php
 /**
  * bloom-aura/index.php
- * Homepage — hero banner + featured products.
- * UI synced to bloom_aura reference: correct hero copy, tag pills,
- * floating petals, wishlist buttons on cards, newsletter strip.
+ * Homepage — hero banner + category strip + featured products
+ *            + why-section + newsletter.
+ * UI pixel-matched to bloom_aura reference HTML.
  */
 
 session_start();
@@ -11,7 +11,7 @@ require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/includes/csrf.php';
 require_once __DIR__ . '/includes/flash.php';
 
-/* ── Fetch featured/latest bouquets ── */
+/* ── Fetch featured / latest bouquets ── */
 $featured = [];
 try {
     $pdo  = getPDO();
@@ -33,16 +33,16 @@ try {
     $featured = [];
 }
 
-/* ── Wishlist lookup (only when logged in) ── */
+/* ── Wishlist IDs for logged-in user ── */
 $wishlistIds = [];
 if (!empty($_SESSION['user_id'])) {
     try {
         $pdo  = getPDO();
         $stmt = $pdo->prepare(
-            "SELECT bouquet_id FROM wishlists WHERE user_id = ?"
+            'SELECT bouquet_id FROM wishlist WHERE user_id = ?'
         );
-        $stmt->execute([$_SESSION['user_id']]);
-        $wishlistIds = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        $stmt->execute([(int)$_SESSION['user_id']]);
+        $wishlistIds = array_map('intval', $stmt->fetchAll(\PDO::FETCH_COLUMN));
     } catch (\Exception $e) {
         $wishlistIds = [];
     }
@@ -58,21 +58,20 @@ require_once __DIR__ . '/includes/header.php';
 ════════════════════════════════════════════ -->
 <section class="hero-section" aria-label="Hero banner">
 
-    <!-- Floating petal decorations (match reference) -->
+    <!-- Floating petal decorations -->
     <span class="hero-deco" aria-hidden="true">🌸</span>
     <span class="hero-deco" aria-hidden="true">🌺</span>
     <span class="hero-deco" aria-hidden="true">🌷</span>
     <span class="hero-deco" aria-hidden="true">💐</span>
 
-    <!-- Decorative blobs -->
-    <div class="hero-blob hero-blob--top"   aria-hidden="true"></div>
+    <!-- Decorative radial blobs -->
+    <div class="hero-blob hero-blob--top"    aria-hidden="true"></div>
     <div class="hero-blob hero-blob--bottom" aria-hidden="true"></div>
 
     <div class="hero-inner">
 
         <div class="hero-badge">🌸 Same-Day Delivery Available</div>
 
-        <!-- Reference title: BloomAura + tagline -->
         <h1 class="hero-title">
             BloomAura<br>
             <em>"Where Every Petal Tells a Story"</em>
@@ -82,7 +81,7 @@ require_once __DIR__ . '/includes/header.php';
             Bouquets &middot; Hampers &middot; Calligraphy &middot; Handcrafted Gifts
         </p>
 
-        <!-- Service tag pills (matching reference glass pills row) -->
+        <!-- Glass service-tag pills -->
         <div class="hero-pills" aria-label="Our offerings">
             <span class="hero-pill">💐 Custom Bouquets</span>
             <span class="hero-pill">🎁 Gift Hampers</span>
@@ -91,6 +90,10 @@ require_once __DIR__ . '/includes/header.php';
             <span class="hero-pill">💌 Made With Love</span>
         </div>
 
+        <!-- Thin divider line matching reference -->
+        <div class="hero-divider" aria-hidden="true"></div>
+
+        <!-- CTA buttons -->
         <div class="hero-cta-row">
             <a href="/bloom-aura/pages/shop.php" class="hero-btn-primary">
                 🛍️ Shop Now
@@ -113,7 +116,7 @@ require_once __DIR__ . '/includes/header.php';
 </section>
 
 <!-- ═══════════════════════════════════════════
-     CATEGORY PILLS
+     CATEGORY STRIP
 ════════════════════════════════════════════ -->
 <nav class="category-strip" aria-label="Browse by category">
     <a href="/bloom-aura/pages/shop.php"                 class="cat-pill active">🌺 All</a>
@@ -138,95 +141,99 @@ require_once __DIR__ . '/includes/header.php';
         <div class="empty-state">
             <div class="empty-icon">🌷</div>
             <h2>No products yet</h2>
-            <p>Set up the database to see products here.</p>
+            <p>Check back soon — beautiful bouquets are on their way!</p>
             <a href="/bloom-aura/pages/shop.php" class="btn btn-primary">Go to Shop</a>
         </div>
 
     <?php else: ?>
         <div class="product-grid">
-            <?php foreach ($featured as $b): ?>
-                <?php
-                $isWishlisted = in_array((int)$b['id'], array_map('intval', $wishlistIds), true);
-                ?>
-                <article class="product-card">
+            <?php foreach ($featured as $b):
+                $isWishlisted = in_array((int)$b['id'], $wishlistIds, true);
+                $inStock      = (int)$b['stock'] > 0;
+            ?>
+            <article class="product-card">
 
-                    <!-- Image + wishlist toggle -->
-                    <a href="/bloom-aura/pages/product.php?slug=<?= urlencode($b['slug']) ?>"
-                       class="card-img-wrap">
-                        <img
-                            src="/bloom-aura/uploads/<?= htmlspecialchars($b['image'], ENT_QUOTES, 'UTF-8') ?>"
-                            alt="<?= htmlspecialchars($b['name'],  ENT_QUOTES, 'UTF-8') ?>"
-                            loading="lazy"
-                            onerror="this.src='/bloom-aura/assets/img/placeholder.jpg'"
-                        >
-                        <?php if ($b['stock'] <= 0): ?>
-                            <span class="badge badge-oos">Out of Stock</span>
-                        <?php elseif ($b['stock'] <= 5): ?>
-                            <span class="badge badge-low">Only <?= (int)$b['stock'] ?> left!</span>
-                        <?php endif; ?>
-                    </a>
+                <!-- Image + badges -->
+                <a href="/bloom-aura/pages/product.php?slug=<?= urlencode($b['slug']) ?>"
+                   class="card-img-wrap">
+                    <img
+                        src="/bloom-aura/uploads/<?= htmlspecialchars($b['image'], ENT_QUOTES, 'UTF-8') ?>"
+                        alt="<?= htmlspecialchars($b['name'],  ENT_QUOTES, 'UTF-8') ?>"
+                        loading="lazy"
+                        width="400" height="300"
+                        onerror="this.src='/bloom-aura/assets/img/placeholder.jpg'"
+                    >
+                    <?php if (!$inStock): ?>
+                        <span class="badge badge-oos">Out of Stock</span>
+                    <?php elseif ((int)$b['stock'] <= 5): ?>
+                        <span class="badge badge-low">Only <?= (int)$b['stock'] ?> left!</span>
+                    <?php endif; ?>
+                </a>
 
-                    <!-- Wishlist heart button -->
-                    <?php if (!empty($_SESSION['user_id'])): ?>
-                    <form action="/bloom-aura/pages/wishlist.php" method="POST">
-                        <?php csrf_field(); ?>
-                        <input type="hidden" name="action"     value="toggle">
-                        <input type="hidden" name="bouquet_id" value="<?= (int)$b['id'] ?>">
-                        <button
-                            type="submit"
-                            class="card-wishlist-btn <?= $isWishlisted ? 'wishlisted' : '' ?>"
-                            aria-label="<?= $isWishlisted ? 'Remove from wishlist' : 'Add to wishlist' ?>"
-                            title="<?= $isWishlisted ? 'Remove from wishlist' : 'Save to wishlist' ?>"
-                        >
-                            <?= $isWishlisted ? '❤️' : '🤍' ?>
-                        </button>
-                    </form>
+                <!-- Wishlist heart (logged-in only) -->
+                <?php if (!empty($_SESSION['user_id'])): ?>
+                <form action="/bloom-aura/pages/wishlist.php" method="POST" class="wishlist-form">
+                    <?php csrf_field(); ?>
+                    <input type="hidden" name="action"     value="toggle">
+                    <input type="hidden" name="bouquet_id" value="<?= (int)$b['id'] ?>">
+                    <button
+                        type="submit"
+                        class="card-wishlist-btn<?= $isWishlisted ? ' wishlisted' : '' ?>"
+                        aria-label="<?= $isWishlisted ? 'Remove from wishlist' : 'Add to wishlist' ?>"
+                        title="<?= $isWishlisted ? 'Remove from wishlist' : 'Save to wishlist' ?>"
+                    ><?= $isWishlisted ? '❤️' : '🤍' ?></button>
+                </form>
+                <?php endif; ?>
+
+                <!-- Card body -->
+                <div class="card-body">
+                    <p class="card-category">
+                        <?= htmlspecialchars($b['category_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>
+                    </p>
+                    <h3 class="card-title">
+                        <a href="/bloom-aura/pages/product.php?slug=<?= urlencode($b['slug']) ?>">
+                            <?= htmlspecialchars($b['name'], ENT_QUOTES, 'UTF-8') ?>
+                        </a>
+                    </h3>
+
+                    <!-- Stars -->
+                    <?php if ((int)$b['review_count'] > 0): ?>
+                    <div class="card-stars" aria-label="Rating: <?= $b['avg_rating'] ?> out of 5">
+                        <?php
+                        $avg = (float)$b['avg_rating'];
+                        for ($i = 1; $i <= 5; $i++):
+                            $cls = $avg >= $i ? 'full' : ($avg >= $i - 0.5 ? 'half' : 'empty');
+                        ?>
+                            <span class="star <?= $cls ?>" aria-hidden="true">★</span>
+                        <?php endfor; ?>
+                        <span class="review-count">(<?= (int)$b['review_count'] ?>)</span>
+                    </div>
                     <?php endif; ?>
 
-                    <!-- Card body -->
-                    <div class="card-body">
-                        <p class="card-category">
-                            <?= htmlspecialchars($b['category_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>
-                        </p>
-                        <h3 class="card-title">
-                            <a href="/bloom-aura/pages/product.php?slug=<?= urlencode($b['slug']) ?>">
-                                <?= htmlspecialchars($b['name'], ENT_QUOTES, 'UTF-8') ?>
-                            </a>
-                        </h3>
-
-                        <!-- Stars -->
-                        <?php if ($b['review_count'] > 0): ?>
-                        <div class="card-stars" aria-label="Rating: <?= $b['avg_rating'] ?> out of 5">
-                            <?php
-                            $avg = (float)$b['avg_rating'];
-                            for ($i = 1; $i <= 5; $i++):
-                                $cls = $avg >= $i ? 'full' : ($avg >= $i - 0.5 ? 'half' : 'empty');
-                            ?>
-                                <span class="star <?= $cls ?>" aria-hidden="true">★</span>
-                            <?php endfor; ?>
-                            <span class="review-count">(<?= (int)$b['review_count'] ?>)</span>
-                        </div>
+                    <!-- Price + Add to Cart -->
+                    <div class="card-footer">
+                        <span class="price">₹<?= number_format($b['price'], 2) ?></span>
+                        <?php if ($inStock): ?>
+                            <form action="/bloom-aura/pages/cart.php" method="POST" class="home-add-form">
+                                <?php csrf_field(); ?>
+                                <input type="hidden" name="action"     value="add">
+                                <input type="hidden" name="product_id" value="<?= (int)$b['id'] ?>">
+                                <input type="hidden" name="qty"        value="1">
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary btn-sm home-add-btn"
+                                    data-name="<?= htmlspecialchars($b['name'], ENT_QUOTES, 'UTF-8') ?>"
+                                >
+                                    🛒 Add
+                                </button>
+                            </form>
+                        <?php else: ?>
+                            <button class="btn btn-sm btn-disabled" disabled>Sold Out</button>
                         <?php endif; ?>
-
-                        <div class="card-footer">
-                            <span class="price">₹<?= number_format($b['price'], 2) ?></span>
-                            <?php if ($b['stock'] > 0): ?>
-                                <form action="/bloom-aura/pages/cart.php" method="POST">
-                                    <?php csrf_field(); ?>
-                                    <input type="hidden" name="action"     value="add">
-                                    <input type="hidden" name="product_id" value="<?= (int)$b['id'] ?>">
-                                    <input type="hidden" name="qty"        value="1">
-                                    <button type="submit" class="btn btn-primary btn-sm">
-                                        🛒 Add
-                                    </button>
-                                </form>
-                            <?php else: ?>
-                                <button class="btn btn-sm btn-disabled" disabled>Sold Out</button>
-                            <?php endif; ?>
-                        </div>
                     </div>
+                </div>
 
-                </article>
+            </article>
             <?php endforeach; ?>
         </div>
 
