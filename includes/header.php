@@ -59,6 +59,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 $allowedPageCss = [
     'home', 'shop', 'product', 'cart', 'checkout',
     'order-confirmation', 'order-history', 'profile', 'wishlist', 'auth',
+    'customize',
 ];
 $safeCssSlug = in_array($pageCss ?? '', $allowedPageCss, true) ? ($pageCss ?? '') : '';
 ?>
@@ -98,6 +99,11 @@ $safeCssSlug = in_array($pageCss ?? '', $allowedPageCss, true) ? ($pageCss ?? ''
     <?php if (($pageCss ?? '') === 'home'): ?>
     <script src="/bloom-aura/assets/js/home.js" defer></script>
     <?php endif; ?>
+
+    <!-- Customize page JS — loaded conditionally -->
+    <?php if (($pageCss ?? '') === 'customize'): ?>
+    <script src="/bloom-aura/assets/js/customize.js" defer></script>
+    <?php endif; ?>
 </head>
 <body>
 
@@ -121,6 +127,10 @@ $safeCssSlug = in_array($pageCss ?? '', $allowedPageCss, true) ? ($pageCss ?? ''
                 🌸 Shop
             </a>
             <?php if ($isLoggedIn): ?>
+            <a href="/bloom-aura/pages/customize.php"
+               class="nav-link <?= $currentPage === 'customize.php' ? 'active' : '' ?>">
+                🎨 Customize
+            </a>
             <a href="/bloom-aura/pages/wishlist.php"
                class="nav-link <?= $currentPage === 'wishlist.php' ? 'active' : '' ?>">
                 🤍 Wishlist

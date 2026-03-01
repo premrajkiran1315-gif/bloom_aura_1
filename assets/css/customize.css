@@ -1,0 +1,395 @@
+/**
+ * bloom-aura-1/assets/css/customize.css
+ * ─────────────────────────────────────────────────────────────
+ * Styles for: pages/customize.php  (Custom Bouquet Builder)
+ * Requires: base.css loaded first.
+ * Pixel-matched to bloom_aura reference (section#customize).
+ * ─────────────────────────────────────────────────────────────
+ */
+
+/* ═══════════════════════════════════════════════════════
+   PAGE WRAPPER
+═══════════════════════════════════════════════════════ */
+.customize-page {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+/* ── Page heading ── */
+.customize-heading {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.customize-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--color-primary);
+  margin: 0 0 .4rem;
+  font-weight: 700;
+}
+.customize-sub {
+  color: #aaa;
+  font-size: .92rem;
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════
+   TWO-COLUMN LAYOUT
+   Left: steps   Right: sticky preview
+═══════════════════════════════════════════════════════ */
+.customize-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  align-items: start;
+}
+
+/* ═══════════════════════════════════════════════════════
+   LEFT — STEP SECTIONS
+═══════════════════════════════════════════════════════ */
+.cust-step {
+  margin-bottom: 28px;
+}
+
+/* Step header row */
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.step-num {
+  background: var(--color-primary);
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: .85rem;
+  flex-shrink: 0;
+}
+.step-title {
+  margin: 0;
+  font-size: 1rem;
+  color: #333;
+  font-family: var(--font-body);
+  font-weight: 700;
+}
+.step-optional {
+  font-weight: 400;
+  color: #aaa;
+  font-size: .85rem;
+}
+
+/* ═══════════════════════════════════════════════════════
+   OPTION GRIDS (flowers, sizes, wraps, chocs)
+═══════════════════════════════════════════════════════ */
+.option-grid {
+  display: grid;
+  gap: 10px;
+}
+.option-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.option-grid--2 { grid-template-columns: repeat(2, 1fr); }
+
+/* ── Shared option label base ── */
+.flower-option,
+.size-option,
+.wrap-option,
+.choc-option {
+  border: 2px solid #fce4ec;
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s, box-shadow .2s, transform .15s;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  user-select: none;
+}
+.flower-option:hover,
+.size-option:hover,
+.wrap-option:hover,
+.choc-option:hover {
+  border-color: var(--color-primary);
+  background: #fff0f5;
+  transform: translateY(-2px);
+}
+.flower-option.selected,
+.size-option.selected,
+.wrap-option.selected,
+.choc-option.selected {
+  border-color: var(--color-primary);
+  background: #fff0f5;
+  box-shadow: 0 0 0 3px rgba(214,51,132,.15);
+}
+
+/* Option content */
+.opt-emoji {
+  font-size: 2.2rem;
+  padding: 8px 0 4px;
+  line-height: 1;
+}
+.opt-name {
+  font-size: .82rem;
+  font-weight: 700;
+  color: #333;
+  margin-top: 4px;
+}
+.opt-meta {
+  font-size: .73rem;
+  color: #aaa;
+  margin-top: 2px;
+}
+.opt-extra,
+.opt-price {
+  font-size: .78rem;
+  color: var(--color-primary);
+  font-weight: 700;
+  margin-top: 3px;
+}
+
+/* ── Chocolate options ── */
+.choc-option {
+  flex-direction: row;
+  text-align: left;
+  gap: 10px;
+  padding: 12px 14px;
+  align-items: center;
+}
+.choc-emoji { font-size: 1.4rem; flex-shrink: 0; }
+.choc-name  { font-size: .82rem; font-weight: 700; color: #333; }
+.choc-sub   { font-size: .72rem; color: #aaa; }
+.choc-price { font-size: .78rem; color: #6d3b2a; font-weight: 700; margin-top: 2px; }
+.choc-option.choc-option--none .choc-name { color: #999; }
+
+/* ═══════════════════════════════════════════════════════
+   EXTRAS LIST
+═══════════════════════════════════════════════════════ */
+.extras-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.extra-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1.5px solid #fce4ec;
+  border-radius: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  user-select: none;
+}
+.extra-option:hover  { border-color: var(--color-primary); background: #fff9fb; }
+.extra-option.checked { border-color: var(--color-primary); background: #fff0f5; }
+.extra-cb   { display: none; } /* hidden — we style the label itself */
+.extra-emoji { font-size: 1.2rem; flex-shrink: 0; }
+.extra-info  { flex: 1; }
+.extra-name  { font-weight: 700; font-size: .88rem; color: #333; }
+.extra-desc  { font-size: .75rem; color: #aaa; margin-top: 1px; }
+.extra-price { color: var(--color-primary); font-weight: 700; font-size: .85rem; white-space: nowrap; }
+
+/* ═══════════════════════════════════════════════════════
+   RIGHT — STICKY PREVIEW CARD
+═══════════════════════════════════════════════════════ */
+.customize-right {
+  position: sticky;
+  top: calc(var(--header-h) + 1rem);
+  align-self: start;
+}
+
+.preview-card {
+  background: linear-gradient(145deg, #fff0f5, #ffe4ef);
+  border-radius: 18px;
+  padding: 28px;
+  border: 1.5px solid #fce4ec;
+  box-shadow: 0 4px 24px rgba(214,51,132,.08);
+}
+
+/* Title */
+.preview-title {
+  margin: 0 0 20px;
+  color: var(--color-primary);
+  text-align: center;
+  font-size: 1.1rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+/* Emoji image box */
+.preview-img-wrap {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(214,51,132,.08);
+}
+.preview-emoji-box {
+  height: 160px;
+  background: #fce4ec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  transition: font-size .3s;
+}
+
+/* Info lines */
+.preview-info-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 6px rgba(214,51,132,.06);
+}
+.preview-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+}
+.preview-line {
+  font-size: .82rem;
+  color: #aaa;
+  margin-top: 4px;
+}
+
+/* Price breakdown */
+.preview-breakdown {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 6px rgba(214,51,132,.06);
+}
+.breakdown-label {
+  font-size: .72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: #888;
+  margin-bottom: 10px;
+}
+.breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: .88rem;
+  padding: 5px 0;
+  border-bottom: 1px dashed #f0f0f0;
+  color: #666;
+}
+.breakdown-row span:last-child {
+  font-weight: 700;
+  color: #333;
+}
+.breakdown-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 2px solid #fce4ec;
+  font-weight: 700;
+  color: #333;
+  font-size: 1rem;
+}
+.total-price {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  transition: transform .25s;
+}
+.total-price.bump {
+  transform: scale(1.15);
+  color: var(--color-primary-h);
+}
+
+/* Selection tags */
+.preview-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+  min-height: 28px;
+}
+.preview-tag {
+  background: #fce4ec;
+  color: var(--color-primary);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+/* CTA button */
+.add-custom-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #d63384, #ff4d94);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 4px 15px rgba(214,51,132,.35);
+  transition: opacity .2s, transform .2s;
+}
+.add-custom-btn:hover {
+  opacity: .9;
+  transform: translateY(-1px);
+}
+.add-custom-btn:active { transform: translateY(0); }
+
+.add-custom-hint {
+  text-align: center;
+  font-size: .75rem;
+  color: #ccc;
+  margin: 10px 0 0;
+}
+
+/* ── Validation error state on options ── */
+.option-error .flower-option:not(.selected),
+.option-error .size-option:not(.selected),
+.option-error .wrap-option:not(.selected) {
+  border-color: var(--color-error);
+}
+
+/* ═══════════════════════════════════════════════════════
+   TOAST (reuse shop-toast styles from base/shop.css)
+   Just adds the validation warning colour override
+═══════════════════════════════════════════════════════ */
+.shop-toast.warn {
+  border-left-color: #f59e0b;
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .customize-layout {
+    grid-template-columns: 1fr;
+  }
+  .customize-right {
+    position: static;
+    order: -1; /* show preview first on mobile */
+  }
+}
+@media (max-width: 600px) {
+  .option-grid--3 { grid-template-columns: repeat(2, 1fr); }
+  .option-grid--2 { grid-template-columns: 1fr 1fr; }
+  .customize-title { font-size: 1.4rem; }
+}
+@media (max-width: 400px) {
+  .option-grid--3,
+  .option-grid--2 { grid-template-columns: 1fr; }
+}
