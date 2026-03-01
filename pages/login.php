@@ -142,50 +142,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
         }
     }
 }
+
+$pageTitle = 'Login — Bloom Aura';
+$pageCss = 'auth';
+require_once __DIR__ . '/../includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login — Bloom Aura</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
-<body>
 
-<div class="login-bg"></div>
-
-<div class="login-card">
+<div class="page-container narrow-page">
+    <div class="auth-card">
 
     <!-- Logo -->
-    <a href="/bloom-aura/" class="login-logo">
+    <a href="/bloom-aura/" class="auth-logo">
         🌸 <em>Bloom</em>&thinsp;Aura
     </a>
 
     <!-- Tab bar -->
-    <div class="login-tab-bar">
-        <button class="ltab <?= $activeTab === 'signin' ? 'active' : '' ?>"
+    <div class="auth-tab-bar">
+        <button class="auth-tab <?= $activeTab === 'signin' ? 'active' : '' ?>"
                 id="ltab-signin"
                 onclick="switchTab('signin')">Sign In</button>
-        <button class="ltab <?= $activeTab === 'signup' ? 'active' : '' ?>"
+        <button class="auth-tab <?= $activeTab === 'signup' ? 'active' : '' ?>"
                 id="ltab-signup"
                 onclick="switchTab('signup')">Create Account</button>
     </div>
 
     <!-- ══ SIGN IN PANEL ══ -->
-    <div class="login-panel <?= $activeTab === 'signin' ? 'active' : '' ?>" id="panel-signin">
+    <div class="auth-panel <?= $activeTab === 'signin' ? 'active' : '' ?>" id="panel-signin">
 
-        <div class="panel-header">
-            <div class="panel-icon">🌸</div>
-            <h2 class="panel-title">Welcome Back</h2>
-            <p class="panel-sub">Sign in to your Bloom Aura account</p>
+        <div class="auth-header">
+            <div class="auth-icon">🌸</div>
+            <h2 class="auth-title">Welcome Back</h2>
+            <p class="auth-subtitle">Sign in to your Bloom Aura account</p>
         </div>
 
         <!-- Social login (UI only) -->
-        <div class="social-row">
+        <div class=\"social-login\">
             <button class="social-btn" type="button" onclick="socialToast('Google')">
                 <svg width="18" height="18" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -197,11 +188,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
             </button>
         </div>
 
-        <div class="login-divider"><span>or sign in with email</span></div>
+        <div class="form-divider"><span>or sign in with email</span></div>
 
         <!-- Error -->
         <?php if (!empty($loginErrors['general'])): ?>
-            <div class="error-box">❌ <?= htmlspecialchars($loginErrors['general'], ENT_QUOTES, 'UTF-8') ?></div>
+            <div class="alert alert-error">❌ <?= htmlspecialchars($loginErrors['general'], ENT_QUOTES, 'UTF-8') ?></div>
         <?php endif; ?>
 
         <form action="/bloom-aura/pages/login.php" method="POST" novalidate>
@@ -209,65 +200,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
             <input type="hidden" name="form_action" value="login">
 
             <!-- Email -->
-            <div class="lfield-wrap">
-                <label class="lfield-label" for="login-email">Email Address</label>
-                <div class="lfield">
-                    <span class="lfield-icon">📧</span>
+            <div class="form-group">
+                <label class="field-label" for="login-email">Email Address</label>
+                <div class="field-icon-wrap">
+                    <span class="field-icon">📧</span>
                     <input type="email" id="login-email" name="email"
                            value="<?= htmlspecialchars($oldLogin['email'], ENT_QUOTES, 'UTF-8') ?>"
                            placeholder="you@example.com"
                            autocomplete="email" required>
-                    <span class="lfield-end">🌸</span>
+                    <span class="field-icon">🌸</span>
                 </div>
                 <?php if (!empty($loginErrors['email'])): ?>
-                    <div class="field-error-dark">❌ <?= htmlspecialchars($loginErrors['email'], ENT_QUOTES, 'UTF-8') ?></div>
+                    <span class="field-error">❌ <?= htmlspecialchars($loginErrors['email'], ENT_QUOTES, 'UTF-8') ?></span>
                 <?php endif; ?>
             </div>
 
             <!-- Password -->
-            <div class="lfield-wrap">
-                <label class="lfield-label" for="login-pass">Password</label>
-                <div class="lfield">
-                    <span class="lfield-icon">🔒</span>
+            <div class="form-group">
+                <label class="field-label" for="login-pass">Password</label>
+                <div class="field-icon-wrap">
+                    <span class="field-icon">🔒</span>
                     <input type="password" id="login-pass" name="password"
                            placeholder="Your password"
                            autocomplete="current-password" required>
-                    <button type="button" class="lfield-end" onclick="togglePass('login-pass', this)"
+                    <button type="button" class="pw-toggle" onclick="togglePass('login-pass', this)"
                             aria-label="Show password">👁</button>
                 </div>
                 <?php if (!empty($loginErrors['password'])): ?>
-                    <div class="field-error-dark">❌ <?= htmlspecialchars($loginErrors['password'], ENT_QUOTES, 'UTF-8') ?></div>
+                    <span class="field-error">❌ <?= htmlspecialchars($loginErrors['password'], ENT_QUOTES, 'UTF-8') ?></span>
                 <?php endif; ?>
             </div>
 
-            <div class="forgot-row">
+            <div class="form-forgot-row">
                 <a href="#">Forgot password? 💌</a>
             </div>
 
-            <button type="submit" class="login-main-btn">Sign In →</button>
+            <button type="submit" class="btn btn-primary btn-full">Sign In →</button>
         </form>
 
-        <div class="login-footer-text">
+        <div class="form-footer-text">
             No account? <a href="#" onclick="switchTab('signup');return false;">Create one free →</a>
         </div>
-        <div class="bottom-links">
+        <div class="form-bottom-links">
             <button onclick="window.location='/bloom-aura/'">← Back to home</button>
             <button onclick="window.location='/bloom-aura/pages/shop.php'">Browse as guest</button>
         </div>
     </div>
 
     <!-- ══ SIGN UP PANEL ══ -->
-    <div class="login-panel <?= $activeTab === 'signup' ? 'active' : '' ?>" id="panel-signup">
+    <div class="auth-panel <?= $activeTab === 'signup' ? 'active' : '' ?>" id="panel-signup">
 
-        <div class="panel-header">
-            <div class="panel-icon">🌷</div>
-            <h2 class="panel-title">Create Account</h2>
-            <p class="panel-sub">Join Bloom Aura and start gifting</p>
+        <div class="auth-header">
+            <div class="auth-icon">🌷</div>
+            <h2 class="auth-title">Create Account</h2>
+            <p class="auth-subtitle">Join Bloom Aura and start gifting</p>
         </div>
 
         <!-- DB / general error -->
         <?php if (!empty($signupErrors['db'])): ?>
-            <div class="error-box">❌ <?= htmlspecialchars($signupErrors['db'], ENT_QUOTES, 'UTF-8') ?></div>
+            <div class="alert alert-error">❌ <?= htmlspecialchars($signupErrors['db'], ENT_QUOTES, 'UTF-8') ?></div>
         <?php endif; ?>
 
         <form action="/bloom-aura/pages/login.php?tab=signup" method="POST" novalidate>
@@ -275,82 +266,83 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
             <input type="hidden" name="form_action" value="register">
 
             <!-- Name -->
-            <div class="lfield-wrap">
-                <label class="lfield-label" for="signup-name">Full Name</label>
-                <div class="lfield">
-                    <span class="lfield-icon">👤</span>
+            <div class="form-group">
+                <label class="field-label" for="signup-name">Full Name</label>
+                <div class="field-icon-wrap">
+                    <span class="field-icon">👤</span>
                     <input type="text" id="signup-name" name="name"
                            value="<?= htmlspecialchars($oldSignup['name'], ENT_QUOTES, 'UTF-8') ?>"
                            placeholder="Your full name"
                            autocomplete="name" required>
-                    <span class="lfield-end">🌸</span>
+                    <span class="field-icon">🌸</span>
                 </div>
                 <?php if (!empty($signupErrors['name'])): ?>
-                    <div class="field-error-dark">❌ <?= htmlspecialchars($signupErrors['name'], ENT_QUOTES, 'UTF-8') ?></div>
+                    <span class="field-error">❌ <?= htmlspecialchars($signupErrors['name'], ENT_QUOTES, 'UTF-8') ?></span>
                 <?php endif; ?>
             </div>
 
             <!-- Email -->
-            <div class="lfield-wrap">
-                <label class="lfield-label" for="signup-email">Email Address</label>
-                <div class="lfield">
-                    <span class="lfield-icon">📧</span>
+            <div class="form-group">
+                <label class="field-label" for="signup-email">Email Address</label>
+                <div class="field-icon-wrap">
+                    <span class="field-icon">📧</span>
                     <input type="email" id="signup-email" name="email"
                            value="<?= htmlspecialchars($oldSignup['email'], ENT_QUOTES, 'UTF-8') ?>"
                            placeholder="you@example.com"
                            autocomplete="email" required>
                 </div>
                 <?php if (!empty($signupErrors['email'])): ?>
-                    <div class="field-error-dark">❌ <?= htmlspecialchars($signupErrors['email'], ENT_QUOTES, 'UTF-8') ?></div>
+                    <span class="field-error">❌ <?= htmlspecialchars($signupErrors['email'], ENT_QUOTES, 'UTF-8') ?></span>
                 <?php endif; ?>
             </div>
 
             <!-- Password -->
-            <div class="lfield-wrap">
-                <label class="lfield-label" for="signup-pass">Password</label>
-                <div class="lfield">
-                    <span class="lfield-icon">🔒</span>
+            <div class="form-group">
+                <label class="field-label" for="signup-pass">Password</label>
+                <div class="field-icon-wrap">
+                    <span class="field-icon">🔒</span>
                     <input type="password" id="signup-pass" name="password"
                            placeholder="Create a password (min 8 chars)"
                            autocomplete="new-password" required minlength="8"
                            oninput="passHint(this)">
-                    <button type="button" class="lfield-end" onclick="togglePass('signup-pass', this)"
+                    <button type="button" class="pw-toggle" onclick="togglePass('signup-pass', this)"
                             aria-label="Show password">👁</button>
                 </div>
-                <div class="field-hint-dark" id="signup-pass-hint">8+ characters</div>
+                <div class="field-hint" id="signup-pass-hint">8+ characters</div>
                 <?php if (!empty($signupErrors['password'])): ?>
-                    <div class="field-error-dark">❌ <?= htmlspecialchars($signupErrors['password'], ENT_QUOTES, 'UTF-8') ?></div>
+                    <span class="field-error">❌ <?= htmlspecialchars($signupErrors['password'], ENT_QUOTES, 'UTF-8') ?></span>
                 <?php endif; ?>
             </div>
 
             <!-- Confirm password -->
-            <div class="lfield-wrap">
-                <label class="lfield-label" for="signup-confirm">Confirm Password</label>
-                <div class="lfield">
-                    <span class="lfield-icon">🔒</span>
+            <div class="form-group">
+                <label class="field-label" for="signup-confirm">Confirm Password</label>
+                <div class="field-icon-wrap">
+                    <span class="field-icon">🔒</span>
                     <input type="password" id="signup-confirm" name="confirm"
                            placeholder="Repeat your password"
                            autocomplete="new-password" required>
-                    <button type="button" class="lfield-end" onclick="togglePass('signup-confirm', this)"
+                    <button type="button" class="pw-toggle" onclick="togglePass('signup-confirm', this)"
                             aria-label="Show password">👁</button>
                 </div>
                 <?php if (!empty($signupErrors['confirm'])): ?>
-                    <div class="field-error-dark">❌ <?= htmlspecialchars($signupErrors['confirm'], ENT_QUOTES, 'UTF-8') ?></div>
+                    <span class="field-error">❌ <?= htmlspecialchars($signupErrors['confirm'], ENT_QUOTES, 'UTF-8') ?></span>
                 <?php endif; ?>
             </div>
 
-            <button type="submit" class="login-main-btn">Create Account 🌸</button>
+            <button type="submit" class="btn btn-primary btn-full">Create Account 🌸</button>
         </form>
 
-        <div class="login-footer-text">
+        <div class="form-footer-text">
             Already have an account? <a href="#" onclick="switchTab('signin');return false;">Sign in →</a>
         </div>
-        <div class="bottom-links">
+        <div class="form-bottom-links">
             <button onclick="window.location='/bloom-aura/'">← Back to home</button>
         </div>
     </div>
 
-</div><!-- /.login-card -->
+</div><!-- /.auth-card -->
+</div><!-- /.page-container -->
 
 <script>
 function switchTab(tab) {
@@ -374,7 +366,7 @@ function togglePass(id, btn) {
 function passHint(inp) {
     var hint = document.getElementById('signup-pass-hint');
     var len = inp.value.length;
-    if (len === 0) { hint.textContent = '8+ characters'; hint.style.color = 'rgba(255,255,255,.28)'; }
+    if (len === 0) { hint.textContent = '8+ characters'; hint.style.opacity = '.4'; }
     else if (len < 8) { hint.textContent = (8 - len) + ' more character' + ((8-len)===1?'':'s') + ' needed'; hint.style.color = '#fca5a5'; }
     else { hint.textContent = '✅ Looks good!'; hint.style.color = '#86efac'; }
 }
@@ -383,5 +375,5 @@ function socialToast(provider) {
     alert('Social login is not connected yet.\nPlease use the email form below.');
 }
 </script>
-</body>
-</html>
+
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>
