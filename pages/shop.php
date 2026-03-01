@@ -221,6 +221,13 @@ require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <!-- ═══════════════════════════════════════════
+     SHOP PAGE WRAP — full width container
+     Ensures topbar + sidebar + grid are all
+     the same width with no centering offset.
+════════════════════════════════════════════ -->
+<div class="shop-page-wrap">
+
+<!-- ═══════════════════════════════════════════
      STICKY TOPBAR
 ════════════════════════════════════════════ -->
 <div class="shop-topbar">
@@ -532,6 +539,7 @@ require_once __DIR__ . '/../includes/header.php';
 
     </main>
 </div><!-- /.shop-body -->
+</div><!-- /.shop-page-wrap -->
 
 <!-- ═══════════════════════════════════════════
      TOAST — matching reference bloom_aura style
