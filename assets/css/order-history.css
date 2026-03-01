@@ -1,0 +1,60 @@
+/**
+ * bloom-aura-1/assets/css/order-history.css
+ * ─────────────────────────────────────────────────────────────
+ * Styles for: pages/order-history.php
+ * Requires: base.css loaded first.
+ * ─────────────────────────────────────────────────────────────
+ */
+
+/* ═══════════════════════════════════════════════════════
+   ORDERS TABLE
+═══════════════════════════════════════════════════════ */
+.orders-table-wrap { overflow-x: auto; }
+
+.orders-table {
+  width: 100%; border-collapse: collapse;
+  background: #fff; border-radius: 12px;
+  overflow: hidden; box-shadow: var(--shadow-sm);
+}
+.orders-table th {
+  padding: .85rem 1rem; text-align: left;
+  font-size: .75rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--color-text-muted);
+  background: #fafafa; border-bottom: 1px solid var(--color-border);
+}
+.orders-table td {
+  padding: .9rem 1rem; border-bottom: 1px solid #f5f5f5;
+  font-size: .88rem;
+}
+.orders-table tr:last-child td { border-bottom: none; }
+.orders-table tr:hover td      { background: #fdf2f8; }
+
+.order-items-preview { display: flex; gap: .5rem; flex-wrap: wrap; }
+.order-thumb {
+  width: 40px; height: 40px; border-radius: 6px;
+  object-fit: cover;
+}
+
+/* Order detail accordion / expand */
+.order-detail-row { display: none; background: #fafafa; }
+.order-detail-row.open { display: table-row; }
+.order-detail-cell { padding: 1rem 1.25rem; }
+
+/* Filter / search bar above table */
+.orders-filter-bar {
+  display: flex; gap: .75rem; margin-bottom: 1.25rem;
+  flex-wrap: wrap; align-items: center;
+}
+.orders-search {
+  padding: .55rem .9rem; border: 1.5px solid var(--color-border);
+  border-radius: 10px; font-size: .85rem; font-family: inherit;
+  outline: none; flex: 1; min-width: 180px;
+}
+.orders-search:focus { border-color: var(--color-primary); }
+.status-filter {
+  padding: .55rem .9rem; border: 1.5px solid var(--color-border);
+  border-radius: 10px; font-size: .85rem; font-family: inherit;
+  background: #fff; outline: none; cursor: pointer;
+}
+.status-filter:focus { border-color: var(--color-primary); }

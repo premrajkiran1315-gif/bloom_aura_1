@@ -1,0 +1,83 @@
+/**
+ * bloom-aura-1/assets/css/checkout.css
+ * ─────────────────────────────────────────────────────────────
+ * Styles for: pages/checkout.php
+ * Requires: base.css loaded first.
+ * ─────────────────────────────────────────────────────────────
+ */
+
+/* ═══════════════════════════════════════════════════════
+   CHECKOUT LAYOUT
+═══════════════════════════════════════════════════════ */
+.checkout-layout {
+  display: flex; gap: 2rem; align-items: flex-start;
+}
+.checkout-form-wrap { flex: 1; }
+
+.checkout-form {
+  background: #fff; border-radius: var(--radius-md);
+  padding: 1.75rem; box-shadow: var(--shadow-sm);
+  margin-bottom: 1rem;
+}
+.section-heading {
+  font-size: 1.1rem; margin-bottom: 1rem;
+  padding-bottom: .5rem; border-bottom: 1px solid var(--color-border);
+  font-family: var(--font-display);
+}
+
+/* ── Order summary sidebar ── */
+.checkout-summary {
+  width: 280px; flex-shrink: 0;
+  background: #fff; border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); padding: 1.25rem;
+  position: sticky; top: calc(var(--header-h) + 1rem);
+  box-shadow: var(--shadow-sm);
+}
+.checkout-summary h2 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; font-family: var(--font-display); }
+
+.checkout-item {
+  display: flex; justify-content: space-between;
+  font-size: .88rem; padding: .4rem 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+.checkout-item:last-of-type { border-bottom: none; }
+.checkout-item-qty { color: var(--color-text-muted); }
+
+.summary-divider { border: none; border-top: 1px solid var(--color-border); margin: .5rem 0; }
+
+.summary-row-co {
+  display: flex; justify-content: space-between;
+  font-size: .9rem; padding: .3rem 0;
+}
+.total-row-co {
+  font-weight: 700; font-size: 1rem;
+  border-top: 1px solid var(--color-border); margin-top: .35rem; padding-top: .5rem;
+}
+.free-label { color: var(--color-success); font-weight: 700; }
+
+/* ═══════════════════════════════════════════════════════
+   PAYMENT METHOD OPTIONS
+═══════════════════════════════════════════════════════ */
+.payment-options { display: flex; flex-direction: column; gap: .5rem; margin-top: .5rem; }
+.payment-option {
+  display: flex; align-items: center; gap: .6rem;
+  border: 1.5px solid var(--color-border); border-radius: var(--radius-sm);
+  padding: .65rem .9rem; cursor: pointer; font-size: .9rem;
+  transition: border-color var(--transition), background var(--transition);
+}
+.payment-option input  { width: auto; cursor: pointer; accent-color: var(--color-primary); }
+.payment-option:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-l);
+}
+.payment-option-icon { font-size: 1.1rem; }
+
+/* Secure badges row */
+.secure-badges {
+  display: flex; flex-wrap: wrap; gap: .4rem; margin-top: 1rem;
+}
+.secure-badge {
+  font-size: .72rem; color: var(--color-text-muted);
+  background: #f5f5f5; border-radius: 6px;
+  padding: .25rem .6rem; display: flex; align-items: center; gap: .3rem;
+}

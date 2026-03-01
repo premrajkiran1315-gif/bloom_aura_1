@@ -1,0 +1,39 @@
+/**
+ * bloom-aura-1/assets/css/wishlist.css
+ * ─────────────────────────────────────────────────────────────
+ * Styles for: pages/wishlist.php
+ * Requires: base.css loaded first.
+ * ─────────────────────────────────────────────────────────────
+ */
+
+/* ═══════════════════════════════════════════════════════
+   WISHLIST GRID
+═══════════════════════════════════════════════════════ */
+.wishlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+/* Card action row (below the shared .product-card styles) */
+.wishlist-card-actions {
+  display: flex; gap: .5rem; margin-top: .75rem;
+}
+.wishlist-card-actions .btn { flex: 1; }
+
+/* Remove from wishlist button (shown on the card) */
+.remove-wish-btn {
+  background: none; border: none; color: #ddd;
+  font-size: 1rem; cursor: pointer; padding: .3rem;
+  border-radius: 6px; transition: color .2s, background .2s;
+}
+.remove-wish-btn:hover { color: var(--color-error); background: #fef2f2; }
+
+/* Wishlist page header row */
+.wishlist-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.5rem; flex-wrap: wrap; gap: .75rem;
+}
+.wishlist-count {
+  font-size: .9rem; color: var(--color-text-muted);
+}
