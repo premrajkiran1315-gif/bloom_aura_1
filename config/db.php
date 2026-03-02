@@ -10,6 +10,7 @@ define('DB_NAME', 'bloom_aura_db');
 define('DB_USER', 'root');       // Change for production
 define('DB_PASS', '');           // Change for production
 define('DB_CHARSET', 'utf8mb4');
+define('BASE_URL', '/bloom-aura'); // Base path for all URL redirects
 
 /**
  * Returns a singleton PDO instance.

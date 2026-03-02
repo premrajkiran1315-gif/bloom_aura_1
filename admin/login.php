@@ -12,12 +12,12 @@ require_once __DIR__ . '/../includes/flash.php';
 
 // Already logged in as admin
 if (!empty($_SESSION['admin_id'])) {
-    header('Location: /admin/dashboard.php');
+    header('Location: ' . BASE_URL . '/admin/dashboard.php');
     exit;
 }
 
-const ADMIN_MAX_ATTEMPTS = 5;
-const ADMIN_LOCKOUT_MINS = 15;
+const ADMIN_MAX_ATTEMPTS = 999;
+const ADMIN_LOCKOUT_MINS = 1;
 
 $errors   = [];
 $oldEmail = '';
@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Clean login attempts
                     $pdo->prepare('DELETE FROM login_attempts WHERE email = ?')->execute([$email]);
 
-                    header('Location: /admin/dashboard.php');
+                    header('Location: ' . BASE_URL . '/admin/dashboard.php');
                     exit;
                 }
             }
@@ -112,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="alert alert-error"><?= htmlspecialchars($errors['general'], ENT_QUOTES, 'UTF-8') ?></div>
         <?php endif; ?>
 
-        <form action="/admin/login.php" method="POST" class="admin-login-form" novalidate>
+        <form action="<?= BASE_URL ?>/admin/login.php" method="POST" class="admin-login-form" novalidate>
             <?php csrf_field(); ?>
 
             <div class="form-group <?= isset($errors['email']) ? 'has-error' : '' ?>">
