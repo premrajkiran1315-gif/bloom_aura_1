@@ -15,6 +15,13 @@
   gap: 1.25rem;
 }
 
+/* Wishlist Product Grid — 4 columns (like home page) */
+.wishlist-product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
 /* Card action row (below the shared .product-card styles) */
 .wishlist-card-actions {
   display: flex; gap: .5rem; margin-top: .75rem;

@@ -143,6 +143,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
-<script src="/assets/js/validate.js"></script>
+<script src="/bloom-aura/assets/js/validate.js"></script>
 </body>
 </html>

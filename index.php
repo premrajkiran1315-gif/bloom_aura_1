@@ -17,14 +17,14 @@ try {
     $pdo  = getPDO();
     $stmt = $pdo->query(
         "SELECT b.id, b.name, b.slug, b.price, b.image, b.stock,
-                c.name AS category_name,
+                c.name AS category_name, c.slug AS category_slug,
                 ROUND(COALESCE(AVG(r.rating), 0), 1) AS avg_rating,
                 COUNT(r.id) AS review_count
          FROM   bouquets b
          LEFT JOIN categories c ON c.id = b.category_id
          LEFT JOIN reviews    r ON r.bouquet_id = b.id
          WHERE  b.is_active = 1
-         GROUP  BY b.id, c.name
+         GROUP  BY b.id, c.name, c.slug
          ORDER  BY b.created_at DESC
          LIMIT  8"
     );
@@ -157,11 +157,11 @@ require_once __DIR__ . '/includes/header.php';
                 <a href="/bloom-aura/pages/product.php?slug=<?= urlencode($b['slug']) ?>"
                    class="card-img-wrap">
                     <img
-                        src="/bloom-aura/uploads/<?= htmlspecialchars($b['image'], ENT_QUOTES, 'UTF-8') ?>"
+                        src="/bloom-aura/uploads/bouquets/<?= htmlspecialchars($b['image'], ENT_QUOTES, 'UTF-8') ?>"
                         alt="<?= htmlspecialchars($b['name'],  ENT_QUOTES, 'UTF-8') ?>"
                         loading="lazy"
                         width="400" height="300"
-                        onerror="this.src='/bloom-aura/assets/img/placeholder.jpg'"
+                        data-category="<?= htmlspecialchars($b['category_slug'] ?? 'bouquets', ENT_QUOTES, 'UTF-8') ?>"
                     >
                     <?php if (!$inStock): ?>
                         <span class="badge badge-oos">Out of Stock</span>

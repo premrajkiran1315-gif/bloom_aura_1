@@ -178,7 +178,7 @@ $related = [];
 try {
     $pdo   = getPDO();
     $rStmt = $pdo->prepare(
-        "SELECT b.name, b.slug, b.price, b.image, c.name AS category_name
+        "SELECT b.name, b.slug, b.price, b.image, c.name AS category_name, c.slug AS category_slug
          FROM bouquets b
          LEFT JOIN categories c ON c.id = b.category_id
          WHERE b.category_id = ? AND b.id != ? AND b.is_active = 1
@@ -241,7 +241,7 @@ require_once __DIR__ . '/../includes/header.php';
                     class="product-main-img"
                     src="/bloom-aura/uploads/bouquets/<?= htmlspecialchars($bouquet['image'], ENT_QUOTES, 'UTF-8') ?>"
                     alt="<?= htmlspecialchars($bouquet['name'], ENT_QUOTES, 'UTF-8') ?>"
-                    onerror="this.src='/bloom-aura/assets/img/placeholder.jpg'"
+                    data-category="<?= htmlspecialchars($bouquet['category_slug'] ?? 'bouquets', ENT_QUOTES, 'UTF-8') ?>"
                 >
                 <?php if ((int)$bouquet['stock'] <= 0): ?>
                     <span class="product-badge-oos">Out of Stock</span>
@@ -378,7 +378,7 @@ require_once __DIR__ . '/../includes/header.php';
                         src="/bloom-aura/uploads/bouquets/<?= htmlspecialchars($r['image'], ENT_QUOTES, 'UTF-8') ?>"
                         alt="<?= htmlspecialchars($r['name'], ENT_QUOTES, 'UTF-8') ?>"
                         loading="lazy"
-                        onerror="this.src='/bloom-aura/assets/img/placeholder.jpg'"
+                        data-category="<?= htmlspecialchars($r['category_slug'] ?? 'bouquets', ENT_QUOTES, 'UTF-8') ?>"
                     >
                 </div>
                 <div class="rel-body">

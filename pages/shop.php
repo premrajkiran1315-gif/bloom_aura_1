@@ -100,10 +100,10 @@ try {
 
     /* Categories with counts */
     $categories = $pdo->query(
-        "SELECT c.id, c.name, c.slug, COUNT(b.id) AS product_count
+        "SELECT c.id, c.name, c.slug, c.emoji, COUNT(b.id) AS product_count
          FROM   categories c
          LEFT JOIN bouquets b ON b.category_id = c.id AND b.is_active = 1
-         GROUP  BY c.id
+         GROUP  BY c.id, c.emoji
          ORDER  BY c.name ASC"
     )->fetchAll();
 
@@ -129,13 +129,40 @@ function buildUrl(array $overrides): string {
     return '/bloom-aura/pages/shop.php?' . http_build_query($params);
 }
 
-$catIcons = [
-    'bouquets'   => '💐',
-    'hampers'    => '🎁',
-    'chocolates' => '🍫',
-    'perfumes'   => '🌹',
-    'plants'     => '🪴',
+/* ── Category emoji with fallback ── */
+const EMOJI_KEYWORD_MAP = [
+    'rose'        => '🌹', 'roses'       => '🌹',
+    'lily'        => '🌷', 'lilies'      => '🌷',
+    'tulip'       => '🌷', 'tulips'      => '🌷',
+    'sunflower'   => '🌻', 'sunflowers'  => '🌻',
+    'orchid'      => '🪻', 'orchids'     => '🪻',
+    'mixed'       => '💐', 'bouquet'     => '💐',
+    'seasonal'    => '💐', 'exotic'      => '🌺',
+    'tropical'    => '🌺', 'wedding'     => '👰',
+    'bridal'      => '👰', 'gift'        => '🎁',
+    'gifts'       => '🎁', 'birthday'    => '🎂',
+    'anniversary' => '💍', 'chocolate'   => '🍫',
+    'chocolates'  => '🍫', 'indoor'      => '🪴',
+    'plant'       => '🪴', 'plants'      => '🪴',
+    'dried'       => '🌾', 'custom'      => '✨',
+    'hamper'      => '🧺', 'luxury'      => '👑',
+    'perfume'     => '🧴', 'carnation'   => '🌸',
+    'daisy'       => '🌼', 'jasmine'     => '🌸',
 ];
+
+function getCategoryEmoji(?string $stored, string $name): string {
+    // Priority 1: Admin-selected emoji
+    if (!empty($stored)) return $stored;
+    
+    // Priority 2: Keyword-based emoji
+    $lower = strtolower($name);
+    foreach (EMOJI_KEYWORD_MAP as $keyword => $emoji) {
+        if (str_contains($lower, $keyword)) return $emoji;
+    }
+    
+    // Priority 3: Default emoji
+    return '🌸';
+}
 
 $priceRanges = [
     ['label' => 'Any price',       'min' => 0,    'max' => 0],
@@ -229,7 +256,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php foreach ($categories as $cat): ?>
                 <a href="<?= htmlspecialchars(buildUrl(['cat' => $cat['slug'], 'page' => 1]), ENT_QUOTES, 'UTF-8') ?>"
                    class="cat-row <?= $catSlug === $cat['slug'] ? 'active' : '' ?>">
-                    <span class="cat-icon"><?= $catIcons[$cat['slug']] ?? '🌸' ?></span>
+                    <span class="cat-icon"><?= getCategoryEmoji($cat['emoji'] ?? null, $cat['name']) ?></span>
                     <span class="cat-label"><?= htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8') ?></span>
                     <span class="cat-count"><?= (int)$cat['product_count'] ?></span>
                 </a>
@@ -347,10 +374,10 @@ require_once __DIR__ . '/../includes/header.php';
                 <a href="/bloom-aura/pages/product.php?slug=<?= urlencode($b['slug']) ?>"
                    class="card-img-wrap">
                     <img
-                        src="/bloom-aura/uploads/<?= htmlspecialchars($b['image'], ENT_QUOTES, 'UTF-8') ?>"
+                        src="/bloom-aura/uploads/bouquets/<?= htmlspecialchars($b['image'], ENT_QUOTES, 'UTF-8') ?>"
                         alt="<?= htmlspecialchars($b['name'], ENT_QUOTES, 'UTF-8') ?>"
                         loading="lazy"
-                        onerror="this.src='/bloom-aura/assets/img/placeholder.jpg'"
+                        data-category="<?= htmlspecialchars($b['category_slug'] ?? 'bouquets', ENT_QUOTES, 'UTF-8') ?>"
                     >
                     <?php if ($b['stock'] <= 0): ?>
                         <span class="badge badge-oos">Out of Stock</span>

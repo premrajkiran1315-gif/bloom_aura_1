@@ -81,4 +81,52 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // ── Product card image fallback ──────────────────────────────
+  const categoryEmojis = {
+    bouquets:   '💐',
+    hampers:    '🎁',
+    chocolates: '🍫',
+    perfumes:   '🌹',
+    plants:     '🪴'
+  };
+
+  document.querySelectorAll('.card-img-wrap img').forEach(img => {
+    const categorySlug = img.dataset.category || 'bouquets';
+    const fallbackIcon = categoryEmojis[categorySlug] || '🌸';
+    
+    // Create fallback element if not exists
+    let fallback = img.closest('.card-img-wrap')?.querySelector('.image-fallback');
+    if (!fallback) {
+      fallback = document.createElement('div');
+      fallback.className = 'image-fallback';
+      fallback.textContent = fallbackIcon;
+      fallback.setAttribute('aria-label', 'Image unavailable');
+      img.closest('.card-img-wrap')?.appendChild(fallback);
+    }
+
+    // Handle image load
+    img.addEventListener('load', () => {
+      fallback.style.display = 'none';
+      img.style.display = 'block';
+    });
+
+    // Handle image error
+    img.addEventListener('error', () => {
+      img.style.display = 'none';
+      fallback.style.display = 'flex';
+    });
+
+    // Check if image is already cached/loaded
+    if (img.complete) {
+      if (img.naturalHeight === 0) {
+        // Image failed
+        img.style.display = 'none';
+        fallback.style.display = 'flex';
+      } else {
+        fallback.style.display = 'none';
+        img.style.display = 'block';
+      }
+    }
+  });
+
 });

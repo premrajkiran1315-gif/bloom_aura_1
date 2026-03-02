@@ -11,11 +11,11 @@ require_once __DIR__ . '/../includes/flash.php';
 
 // Guard: must be logged in and have a valid order just placed
 if (empty($_SESSION['user_id'])) {
-    header('Location: /pages/login.php');
+    header('Location: /bloom-aura/pages/login.php');
     exit;
 }
 if (empty($_SESSION['last_order_id'])) {
-    header('Location: /pages/order-history.php');
+    header('Location: /bloom-aura/pages/order-history.php');
     exit;
 }
 
@@ -40,7 +40,7 @@ try {
     $order = $orderStmt->fetch();
 
     if (!$order) {
-        header('Location: /pages/order-history.php');
+        header('Location: /bloom-aura/pages/order-history.php');
         exit;
     }
 
@@ -92,7 +92,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <?php foreach ($items as $item): ?>
                         <tr>
                             <td>
-                                <a href="/pages/product.php?slug=<?= urlencode($item['bouquet_slug']) ?>">
+                                <a href="/bloom-aura/pages/product.php?slug=<?= urlencode($item['bouquet_slug']) ?>">
                                     <?= htmlspecialchars($item['bouquet_name'], ENT_QUOTES, 'UTF-8') ?>
                                 </a>
                             </td>
@@ -126,10 +126,10 @@ require_once __DIR__ . '/../includes/header.php';
 
         <!-- Actions -->
         <div class="confirm-actions">
-            <a href="/pages/order-history.php" class="btn btn-outline">
+            <a href="/bloom-aura/pages/order-history.php" class="btn btn-outline">
                 <i class="fa-solid fa-clock-rotate-left"></i> View All Orders
             </a>
-            <a href="/pages/shop.php" class="btn btn-primary">
+            <a href="/bloom-aura/pages/shop.php" class="btn btn-primary">
                 <i class="fa-solid fa-basket-shopping"></i> Continue Shopping
             </a>
             <button onclick="window.print()" class="btn btn-ghost">

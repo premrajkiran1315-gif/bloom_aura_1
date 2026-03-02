@@ -97,7 +97,7 @@ try {
     $stmt = $pdo->prepare(
         "SELECT w.bouquet_id, w.added_at,
                 b.name, b.slug, b.price, b.stock, b.image,
-                c.name AS category_name,
+                c.name AS category_name, c.slug AS category_slug,
                 ROUND(AVG(r.rating), 1) AS avg_rating,
                 COUNT(r.id) AS review_count
          FROM wishlist w
@@ -105,7 +105,7 @@ try {
          LEFT JOIN categories c ON c.id = b.category_id
          LEFT JOIN reviews r ON r.bouquet_id = b.id
          WHERE w.user_id = ?
-         GROUP BY w.bouquet_id, w.added_at, b.name, b.slug, b.price, b.stock, b.image, c.name
+         GROUP BY w.bouquet_id, w.added_at, b.name, b.slug, b.price, b.stock, b.image, c.name, c.slug
          ORDER BY w.added_at DESC"
     );
     $stmt->execute([$userId]);
@@ -148,16 +148,16 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
 
     <?php else: ?>
-        <div class="product-grid">
+        <div class="wishlist-product-grid">
             <?php foreach ($items as $item): ?>
                 <article class="product-card">
                     <a href="/bloom-aura/pages/product.php?slug=<?= urlencode($item['slug']) ?>"
                        class="card-img-wrap">
                         <img
-                            src="/bloom-aura/uploads/<?= htmlspecialchars($item['image'], ENT_QUOTES, 'UTF-8') ?>"
+                            src="/bloom-aura/uploads/bouquets/<?= htmlspecialchars($item['image'], ENT_QUOTES, 'UTF-8') ?>"
                             alt="<?= htmlspecialchars($item['name'], ENT_QUOTES, 'UTF-8') ?>"
                             loading="lazy" width="300" height="250"
-                            onerror="this.src='/bloom-aura/assets/img/placeholder.jpg'"
+                            data-category="<?= htmlspecialchars($item['category_slug'] ?? 'bouquets', ENT_QUOTES, 'UTF-8') ?>"
                         >
                         <?php if ($item['stock'] <= 0): ?>
                             <span class="badge badge-oos">Out of Stock</span>

@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['user_name']  = $name;
                     $_SESSION['user_email'] = $email;
                     flash('Profile updated successfully! ✅', 'success');
-                    header('Location: /pages/profile.php');
+                    header('Location: /bloom-aura/pages/profile.php');
                     exit;
                 }
             } catch (RuntimeException $e) {
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $hash = password_hash($newPass, PASSWORD_BCRYPT);
                     $pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?')->execute([$hash, $userId]);
                     flash('Password changed successfully! 🔐', 'success');
-                    header('Location: /pages/profile.php');
+                    header('Location: /bloom-aura/pages/profile.php');
                     exit;
                 }
             } catch (RuntimeException $e) {
@@ -153,13 +153,13 @@ require_once __DIR__ . '/../includes/header.php';
 
     <!-- Quick links -->
     <div class="profile-quick-links">
-        <a href="/pages/order-history.php" class="quick-link">
+        <a href="/bloom-aura/pages/order-history.php" class="quick-link">
             <i class="fa-solid fa-clock-rotate-left"></i> Order History
         </a>
-        <a href="/pages/wishlist.php" class="quick-link">
+        <a href="/bloom-aura/pages/wishlist.php" class="quick-link">
             <i class="fa-solid fa-heart"></i> My Wishlist
         </a>
-        <a href="/pages/shop.php" class="quick-link">
+        <a href="/bloom-aura/pages/shop.php" class="quick-link">
             <i class="fa-solid fa-basket-shopping"></i> Shop Now
         </a>
     </div>
@@ -174,7 +174,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <div class="alert alert-error"><?= htmlspecialchars($errors['db'], ENT_QUOTES, 'UTF-8') ?></div>
             <?php endif; ?>
 
-            <form action="/pages/profile.php" method="POST" novalidate>
+            <form action="/bloom-aura/pages/profile.php" method="POST" novalidate>
                 <?php csrf_field(); ?>
                 <input type="hidden" name="action" value="update_profile">
 
@@ -206,7 +206,7 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="profile-card">
             <h2 class="profile-card-title">Change Password</h2>
 
-            <form action="/pages/profile.php" method="POST" novalidate>
+            <form action="/bloom-aura/pages/profile.php" method="POST" novalidate>
                 <?php csrf_field(); ?>
                 <input type="hidden" name="action" value="change_password">
 

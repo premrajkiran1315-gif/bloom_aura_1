@@ -91,46 +91,6 @@
 
 </footer>
 
-
-    gap: 2.5rem;
-    flex-wrap: wrap;
-    font-size: .8rem;
-    font-weight: 600;
-    color: rgba(255,255,255,.35);
-    border-bottom: 1px solid rgba(255,255,255,.07);
-}
-.footer-trust-bar span {
-    display: flex;
-    align-items: center;
-    gap: .3rem;
-}
-
-/* Bottom bar */
-.footer-bottom {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1.1rem 0 1.4rem;
-    text-align: center;
-    font-size: .78rem;
-    color: rgba(255,255,255,.22);
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-    .footer-inner {
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-    }
-    .footer-brand { grid-column: 1 / -1; }
-}
-@media (max-width: 500px) {
-    .footer-inner {
-        grid-template-columns: 1fr;
-    }
-    .footer-trust-bar { gap: 1rem; }
-}
-</style>
-
 <!-- ── Back to top + mobile nav JS ── -->
 <script>
 (function () {

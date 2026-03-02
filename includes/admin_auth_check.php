@@ -13,6 +13,6 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Admin session is tracked separately from customer session
 if (empty($_SESSION['admin_id']) || empty($_SESSION['admin_role']) || $_SESSION['admin_role'] !== 'admin') {
-    header('Location: /admin/login.php');
+    header('Location: /bloom-aura/admin/login.php');
     exit;
 }

@@ -459,6 +459,67 @@
 }
 
 /* ══════════════════════════════════════════════════════
+   EMOJI PICKER
+══════════════════════════════════════════════════════ */
+.cat-emoji-hint {
+  font-size: .75rem;
+  color: var(--adm-text-faint);
+  margin: 6px 0 12px;
+  font-style: italic;
+}
+
+.cat-emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  gap: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--adm-border);
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.cat-emoji-btn {
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 6px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 200ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+}
+
+.cat-emoji-btn:hover {
+  background: rgba(214, 51, 132, 0.15);
+  border-color: #d63384;
+  transform: scale(1.1);
+}
+
+.cat-emoji-btn.selected {
+  background: #d63384;
+  border-color: #d63384;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(214, 51, 132, 0.3);
+}
+
+.cat-selected-emoji {
+  font-size: .78rem;
+  color: var(--adm-text-faint);
+  margin: 8px 0 0;
+}
+
+#selected-emoji-display {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #d63384;
+  margin-left: 4px;
+}
+
+/* ══════════════════════════════════════════════════════
    RESPONSIVE
 ══════════════════════════════════════════════════════ */
 

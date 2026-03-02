@@ -13,7 +13,7 @@ require_once __DIR__ . '/../includes/admin_auth_check.php';
 
 // ── Admin guard ───────────────────────────────────────────────────────────────
 if (empty($_SESSION['admin_id']) || ($_SESSION['admin_role'] ?? '') !== 'admin') {
-    header('Location: /admin/login.php');
+    header('Location: /bloom-aura/admin/login.php');
     exit;
 }
 
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
             flash('Could not delete bouquet. It may be linked to existing orders.', 'error');
         }
     }
-    header('Location: /admin/bouquets.php');
+    header('Location: /bloom-aura/admin/bouquets.php');
     exit;
 }
 
@@ -90,18 +90,18 @@ require_once __DIR__ . '/../includes/admin_header.php';
 
     <div class="admin-page-header">
         <h1 class="page-title">Bouquets</h1>
-        <a href="/admin/add-bouquet.php" class="btn btn-primary">
+        <a href="/bloom-aura/admin/add-bouquet.php" class="btn btn-primary">
             <i class="fa-solid fa-plus"></i> Add New Bouquet
         </a>
     </div>
 
     <!-- Search -->
-    <form action="/admin/bouquets.php" method="GET" class="admin-search-form">
+    <form action="/bloom-aura/admin/bouquets.php" method="GET" class="admin-search-form">
         <input type="search" name="q" value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>"
                placeholder="Search bouquets or categories…" class="admin-search-input">
         <button type="submit" class="btn btn-outline">Search</button>
         <?php if ($search): ?>
-            <a href="/admin/bouquets.php" class="btn btn-ghost">Clear</a>
+            <a href="/bloom-aura/admin/bouquets.php" class="btn btn-ghost">Clear</a>
         <?php endif; ?>
     </form>
 
@@ -112,7 +112,7 @@ require_once __DIR__ . '/../includes/admin_header.php';
             <div class="empty-icon">🌷</div>
             <h2>No bouquets found</h2>
             <p><?= $search ? 'Try a different search term.' : 'Add your first bouquet to get started.' ?></p>
-            <a href="/admin/add-bouquet.php" class="btn btn-primary">Add Bouquet</a>
+            <a href="/bloom-aura/admin/add-bouquet.php" class="btn btn-primary">Add Bouquet</a>
         </div>
     <?php else: ?>
         <p class="results-count"><?= $total ?> bouquet<?= $total !== 1 ? 's' : '' ?></p>
@@ -135,13 +135,13 @@ require_once __DIR__ . '/../includes/admin_header.php';
                         <tr>
                             <td>
                                 <img
-                                    src="/uploads/bouquets/<?= htmlspecialchars($b['image'], ENT_QUOTES, 'UTF-8') ?>"
+                                    src="/bloom-aura/uploads/bouquets/<?= htmlspecialchars($b['image'], ENT_QUOTES, 'UTF-8') ?>"
                                     alt="<?= htmlspecialchars($b['name'], ENT_QUOTES, 'UTF-8') ?>"
                                     class="admin-thumb" width="56" height="56" loading="lazy"
                                 >
                             </td>
                             <td>
-                                <a href="/pages/product.php?slug=<?= urlencode($b['slug']) ?>" target="_blank" class="table-product-name">
+                                <a href="/bloom-aura/pages/product.php?slug=<?= urlencode($b['slug']) ?>" target="_blank" class="table-product-name">
                                     <?= htmlspecialchars($b['name'], ENT_QUOTES, 'UTF-8') ?>
                                 </a>
                             </td>
@@ -158,10 +158,10 @@ require_once __DIR__ . '/../includes/admin_header.php';
                             </td>
                             <td><?= date('d M Y', strtotime($b['created_at'])) ?></td>
                             <td class="table-actions">
-                                <a href="/admin/edit-bouquet.php?id=<?= (int)$b['id'] ?>" class="btn btn-outline btn-xs">
+                                <a href="/bloom-aura/admin/edit-bouquet.php?id=<?= (int)$b['id'] ?>" class="btn btn-outline btn-xs">
                                     <i class="fa-solid fa-pen"></i> Edit
                                 </a>
-                                <form action="/admin/bouquets.php" method="POST"
+                                <form action="/bloom-aura/admin/bouquets.php" method="POST"
                                       onsubmit="return confirm('Delete «<?= htmlspecialchars(addslashes($b['name']), ENT_QUOTES, 'UTF-8') ?>»? This cannot be undone.')">
                                     <?php csrf_field(); ?>
                                     <input type="hidden" name="action" value="delete">

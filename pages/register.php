@@ -11,7 +11,7 @@ require_once __DIR__ . '/../includes/flash.php';
 
 // Already logged in — redirect away
 if (!empty($_SESSION['user_id'])) {
-    header('Location: /pages/shop.php');
+    header('Location: /bloom-aura/pages/shop.php');
     exit;
 }
 
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$name, $email, $hash]);
 
             flash('Account created! Please log in.', 'success');
-            header('Location: /pages/login.php');
+            header('Location: /bloom-aura/pages/login.php');
             exit;
         } catch (RuntimeException $e) {
             $errors['db'] = 'A server error occurred. Please try again.';
@@ -95,7 +95,7 @@ require_once __DIR__ . '/../includes/header.php';
             <div class="alert alert-error"><?= htmlspecialchars($errors['db'], ENT_QUOTES, 'UTF-8') ?></div>
         <?php endif; ?>
 
-        <form action="/pages/register.php" method="POST" class="auth-form" novalidate>
+        <form action="/bloom-aura/pages/register.php" method="POST" class="auth-form" novalidate>
             <?php csrf_field(); ?>
 
             <!-- Full Name -->
@@ -187,9 +187,9 @@ require_once __DIR__ . '/../includes/header.php';
             <button type="submit" class="btn btn-primary btn-full">Create Account</button>
         </form>
 
-        <p class="auth-switch">Already have an account? <a href="/pages/login.php">Log in</a></p>
+        <p class="auth-switch">Already have an account? <a href="/bloom-aura/pages/login.php">Log in</a></p>
     </div>
 </div>
 
-<script src="/assets/js/validate.js"></script>
+<script src="/bloom-aura/assets/js/validate.js"></script>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

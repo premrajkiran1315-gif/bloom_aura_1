@@ -16,6 +16,7 @@
   .user-name-label { display: inline; }
   .profile-grid    { grid-template-columns: 1fr 1fr; }
   .form-row        { grid-template-columns: 1fr 1fr; }
+  .wishlist-product-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -24,6 +25,7 @@
 @media (min-width: 1024px) {
   .page-container        { padding: 2.5rem 2rem; }
   .product-detail-layout { flex-direction: row; }
+  .wishlist-product-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -31,6 +33,7 @@
 ═══════════════════════════════════════════════════════ */
 @media (min-width: 1280px) {
   .product-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+  .wishlist-product-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -58,6 +61,7 @@
     border-right: none; border-bottom: 1px solid #e8e8e8;
   }
   .product-grid { grid-template-columns: repeat(2, 1fr); gap: .75rem; }
+  .wishlist-product-grid { grid-template-columns: repeat(2, 1fr); gap: .75rem; }
 
   /* Cart / Checkout */
   .cart-layout, .checkout-layout { flex-direction: column; }
@@ -115,6 +119,7 @@
   .product-grid { grid-template-columns: 1fr; }
   .page-title   { font-size: 1.5rem; }
   .wishlist-grid { grid-template-columns: 1fr; }
+  .wishlist-product-grid { grid-template-columns: 1fr; }
 }
 
 /* ═══════════════════════════════════════════════════════

@@ -19,31 +19,47 @@ if (empty($_SESSION['admin_id']) || ($_SESSION['admin_role'] ?? '') !== 'admin')
 $errors = [];
 $editId = (int)($_GET['edit'] ?? 0);
 
-/* ── Category emoji helper ────────────────────────────────────────────────── */
-function categoryEmoji(string $name): string {
-    $map = [
-        'rose'        => '🌹', 'roses'       => '🌹',
-        'lily'        => '🌷', 'lilies'      => '🌷',
-        'tulip'       => '🌷', 'tulips'      => '🌷',
-        'sunflower'   => '🌻', 'sunflowers'  => '🌻',
-        'orchid'      => '🪻', 'orchids'     => '🪻',
-        'mixed'       => '💐', 'bouquet'     => '💐',
-        'seasonal'    => '💐', 'exotic'      => '🌺',
-        'tropical'    => '🌺', 'wedding'     => '👰',
-        'bridal'      => '👰', 'gift'        => '🎁',
-        'gifts'       => '🎁', 'birthday'    => '🎂',
-        'anniversary' => '💍', 'chocolate'   => '🍫',
-        'chocolates'  => '🍫', 'indoor'      => '🪴',
-        'plant'       => '🪴', 'plants'      => '🪴',
-        'dried'       => '🌾', 'custom'      => '✨',
-        'hamper'      => '🧺', 'luxury'      => '👑',
-        'perfume'     => '🧴', 'carnation'   => '🌸',
-        'daisy'       => '🌼', 'jasmine'     => '🌸',
-    ];
+/* ── Emoji map for keyword fallback ──────────────────────────────────── */
+const EMOJI_MAP = [
+    'rose'        => '🌹', 'roses'       => '🌹',
+    'lily'        => '🌷', 'lilies'      => '🌷',
+    'tulip'       => '🌷', 'tulips'      => '🌷',
+    'sunflower'   => '🌻', 'sunflowers'  => '🌻',
+    'orchid'      => '🪻', 'orchids'     => '🪻',
+    'mixed'       => '💐', 'bouquet'     => '💐',
+    'seasonal'    => '💐', 'exotic'      => '🌺',
+    'tropical'    => '🌺', 'wedding'     => '👰',
+    'bridal'      => '👰', 'gift'        => '🎁',
+    'gifts'       => '🎁', 'birthday'    => '🎂',
+    'anniversary' => '💍', 'chocolate'   => '🍫',
+    'chocolates'  => '🍫', 'indoor'      => '🪴',
+    'plant'       => '🪴', 'plants'      => '🪴',
+    'dried'       => '🌾', 'custom'      => '✨',
+    'hamper'      => '🧺', 'luxury'      => '👑',
+    'perfume'     => '🧴', 'carnation'   => '🌸',
+    'daisy'       => '🌼', 'jasmine'     => '🌸',
+];
+
+/* ── All available emojis for selection ─────────────────────────────── */
+const ALL_EMOJIS = [
+    '🌹', '🌷', '🌻', '🌺', '🌸', '🪻', '💐', '🌼', '🌾', '🌿',
+    '🎁', '🎂', '🎉', '🎊', '🎈', '💝', '💖', '💍', '👑', '✨',
+    '🍫', '🍰', '🧁', '🍾', '🥂', '☕', '🧴', '🧺', '👰', '💒',
+    '🪴', '🌱', '🌲', '🌳', '🏵️', '💮', '🥀', '🏷️', '⭐', '✅',
+];
+
+/* ── Category emoji helper with tiered fallback ────────────────────── */
+function categoryEmoji(?string $stored, string $name): string {
+    // Priority 1: Admin-selected emoji
+    if (!empty($stored)) return $stored;
+    
+    // Priority 2: Keyword-based emoji
     $lower = strtolower($name);
-    foreach ($map as $keyword => $emoji) {
+    foreach (EMOJI_MAP as $keyword => $emoji) {
         if (str_contains($lower, $keyword)) return $emoji;
     }
+    
+    // Priority 3: Default emoji
     return '🏷️';
 }
 
@@ -56,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add') {
         $name        = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
+        $emoji       = trim($_POST['emoji'] ?? '');
 
         if ($name === '' || strlen($name) < 2) {
             $errors['add_name'] = 'Category name is required (min 2 chars).';
@@ -70,8 +87,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $check->execute([$slug]);
                 if ($check->fetch()) $slug .= '-' . time();
 
-                $pdo->prepare('INSERT INTO categories (name, slug, description) VALUES (?, ?, ?)')
-                    ->execute([$name, $slug, $description]);
+                $pdo->prepare('INSERT INTO categories (name, slug, description, emoji) VALUES (?, ?, ?, ?)')
+                    ->execute([$name, $slug, $description, $emoji]);
                 flash('Category "' . htmlspecialchars($name) . '" added.', 'success');
                 header('Location: /bloom-aura/admin/categories.php');
                 exit;
@@ -86,6 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $catId       = (int)($_POST['category_id'] ?? 0);
         $name        = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
+        $emoji       = trim($_POST['emoji'] ?? '');
 
         if ($name === '' || strlen($name) < 2) {
             $errors['edit_name'] = 'Category name is required (min 2 chars).';
@@ -94,8 +112,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($errors) && $catId > 0) {
             try {
                 $pdo = getPDO();
-                $pdo->prepare('UPDATE categories SET name = ?, description = ? WHERE id = ?')
-                    ->execute([$name, $description, $catId]);
+                $pdo->prepare('UPDATE categories SET name = ?, description = ?, emoji = ? WHERE id = ?')
+                    ->execute([$name, $description, $emoji, $catId]);
                 flash('Category updated.', 'success');
                 header('Location: /bloom-aura/admin/categories.php');
                 exit;
@@ -272,6 +290,33 @@ $adminName = htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'U
                                 ) ?></textarea>
                             </div>
 
+                            <!-- Emoji picker -->
+                            <div class="cat-field">
+                                <label>Category Icon / Emoji <span class="cat-optional">(optional)</span></label>
+                                <p class="cat-emoji-hint">Select an emoji or leave empty to auto-detect from category name</p>
+                                <div class="cat-emoji-grid" id="cat-emoji-grid">
+                                    <?php foreach (ALL_EMOJIS as $e): ?>
+                                        <button
+                                            type="button"
+                                            class="cat-emoji-btn"
+                                            data-emoji="<?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?>"
+                                            title="<?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?>"
+                                        >
+                                            <?= $e ?>
+                                        </button>
+                                    <?php endforeach; ?>
+                                </div>
+                                <input
+                                    type="hidden"
+                                    id="cat-emoji"
+                                    name="emoji"
+                                    value="<?= htmlspecialchars($_POST['emoji'] ?? $editTarget['emoji'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                                >
+                                <div class="cat-selected-emoji">
+                                    Selected: <span id="selected-emoji-display"><?= htmlspecialchars($_POST['emoji'] ?? $editTarget['emoji'] ?? '—', ENT_QUOTES, 'UTF-8') ?></span>
+                                </div>
+                            </div>
+
                             <!-- Actions -->
                             <div class="cat-form-actions">
                                 <button type="submit" class="cat-btn-submit">
@@ -308,7 +353,7 @@ $adminName = htmlspecialchars($_SESSION['admin_name'] ?? 'Admin', ENT_QUOTES, 'U
                     <?php else: ?>
                         <div class="cat-grid">
                             <?php foreach ($categories as $cat):
-                                $emoji   = categoryEmoji($cat['name']);
+                                $emoji   = categoryEmoji($cat['emoji'] ?? null, $cat['name']);
                                 $count   = (int)$cat['bouquet_count'];
                                 $isEdit  = (int)$cat['id'] === $editId;
                             ?>

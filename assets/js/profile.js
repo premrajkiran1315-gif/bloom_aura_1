@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── Form Submission Feedback ─────────────────────────────────────
-  const profileForm = document.querySelector('form[action="/pages/profile.php"]');
+  const profileForm = document.querySelector('form[action="/bloom-aura/pages/profile.php"]');
   const updateProfileForm = document.querySelector('input[name="action"][value="update_profile"]')?.closest('form');
   const changePasswordForm = document.querySelector('input[name="action"][value="change_password"]')?.closest('form');
 
