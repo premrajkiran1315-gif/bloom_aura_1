@@ -16,8 +16,8 @@ if (!empty($_SESSION['admin_id'])) {
     exit;
 }
 
-const ADMIN_MAX_ATTEMPTS = 999;
-const ADMIN_LOCKOUT_MINS = 1;
+const ADMIN_MAX_ATTEMPTS = 5;
+const ADMIN_LOCKOUT_MINS = 15;
 
 $errors   = [];
 $oldEmail = '';
@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </button>
         </form>
 
-        <p class="back-link"><a href="/">&larr; Back to store</a></p>
+        <p class="back-link"><a href="/bloom-aura/">&larr; Back to store</a></p>
     </div>
 </div>
 
