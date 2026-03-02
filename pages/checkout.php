@@ -2,7 +2,8 @@
 /**
  * bloom-aura/pages/checkout.php
  * Pixel-matched to bloom_aura reference UI.
- * Backend logic (PDO, CSRF, session, transaction) preserved.
+ * FIX: Prices are now re-validated against the database at checkout.
+ *      Session prices are never trusted for order totals.
  */
 
 session_start();
@@ -18,11 +19,93 @@ if (empty($_SESSION['cart'])) {
     exit;
 }
 
-$cart     = $_SESSION['cart'];
-$subtotal = array_reduce($cart, fn($c, $i) => $c + ($i['price'] * $i['qty']), 0);
+// ── Re-validate cart items against the database ───────────────────────────────
+// NEVER trust session prices — always fetch current price and stock from DB.
+$cart          = $_SESSION['cart'];
+$validatedCart = []; // will hold DB-verified items
+$cartWarnings  = []; // items that had issues (removed or adjusted)
+
+try {
+    $pdo = getPDO();
+
+    foreach ($cart as $productId => $item) {
+        // Skip custom bouquets (string keys like 'custom_1234') — they have no DB row
+        if (!is_numeric($productId)) {
+            $validatedCart[$productId] = $item;
+            continue;
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT id, name, price, stock, is_active
+             FROM bouquets WHERE id = ? LIMIT 1'
+        );
+        $stmt->execute([(int)$productId]);
+        $dbProduct = $stmt->fetch();
+
+        // Product deleted or deactivated since added to cart
+        if (!$dbProduct || !$dbProduct['is_active']) {
+            $cartWarnings[] = htmlspecialchars($item['name'], ENT_QUOTES, 'UTF-8')
+                            . ' is no longer available and was removed from your cart.';
+            unset($_SESSION['cart'][$productId]);
+            continue;
+        }
+
+        // Out of stock entirely
+        if ((int)$dbProduct['stock'] <= 0) {
+            $cartWarnings[] = htmlspecialchars($dbProduct['name'], ENT_QUOTES, 'UTF-8')
+                            . ' is out of stock and was removed from your cart.';
+            unset($_SESSION['cart'][$productId]);
+            continue;
+        }
+
+        // Quantity exceeds available stock — clamp it
+        $qty = (int)$item['qty'];
+        if ($qty > (int)$dbProduct['stock']) {
+            $qty = (int)$dbProduct['stock'];
+            $_SESSION['cart'][$productId]['qty'] = $qty;
+            $cartWarnings[] = htmlspecialchars($dbProduct['name'], ENT_QUOTES, 'UTF-8')
+                            . ' quantity adjusted to ' . $qty . ' (maximum available).';
+        }
+
+        // ✅ Use DB price — never session price
+        $validatedCart[$productId] = [
+            'id'    => (int)$dbProduct['id'],
+            'name'  => $dbProduct['name'],
+            'price' => (float)$dbProduct['price'], // ← DB price, not session price
+            'image' => $item['image'],
+            'qty'   => $qty,
+        ];
+
+        // Also update session price to stay in sync for cart display
+        $_SESSION['cart'][$productId]['price'] = (float)$dbProduct['price'];
+    }
+
+} catch (RuntimeException $e) {
+    flash('Unable to verify cart items. Please try again.', 'error');
+    header('Location: /bloom-aura/pages/cart.php');
+    exit;
+}
+
+// If validation removed everything, send back to cart
+if (empty($validatedCart)) {
+    foreach ($cartWarnings as $w) flash($w, 'error');
+    header('Location: /bloom-aura/pages/cart.php');
+    exit;
+}
+
+// Show warnings but continue if some items are still valid
+foreach ($cartWarnings as $w) {
+    flash($w, 'error');
+}
+
+// ── Recalculate totals using DB-verified prices ───────────────────────────────
+$subtotal = array_reduce($validatedCart, fn($c, $i) => $c + ($i['price'] * $i['qty']), 0);
 $delivery = $subtotal > 999 ? 0 : 80;
 $discount = !empty($_SESSION['promo_applied']) ? (int) round($subtotal * 0.10) : 0;
 $total    = $subtotal + $delivery - $discount;
+
+// Use $validatedCart everywhere below instead of $cart
+$cart = $validatedCart;
 
 $errors = [];
 $old    = [];
@@ -39,12 +122,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $old = compact('name', 'address', 'city', 'pincode', 'phone', 'payment');
 
-    if ($name === '')                               $errors['name']    = 'Full name is required.';
-    if ($address === '')                            $errors['address'] = 'Street address is required.';
-    if ($city === '')                               $errors['city']    = 'City is required.';
-    if (!preg_match('/^\d{6}$/', $pincode))        $errors['pincode'] = 'Enter a valid 6-digit PIN code.';
-    if (!preg_match('/^\d{10}$/', $phone))         $errors['phone']   = 'Enter a valid 10-digit phone number.';
-    if (!in_array($payment, ['cod','upi','card']))  $errors['payment'] = 'Please select a payment method.';
+    if ($name === '')                              $errors['name']    = 'Full name is required.';
+    if ($address === '')                           $errors['address'] = 'Street address is required.';
+    if ($city === '')                              $errors['city']    = 'City is required.';
+    if (!preg_match('/^\d{6}$/', $pincode))       $errors['pincode'] = 'Enter a valid 6-digit PIN code.';
+    if (!preg_match('/^\d{10}$/', $phone))        $errors['phone']   = 'Enter a valid 10-digit phone number.';
+    if (!in_array($payment, ['cod','upi','card'])) $errors['payment'] = 'Please select a payment method.';
 
     if (empty($errors)) {
         try {
@@ -64,18 +147,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $orderId = (int) $pdo->lastInsertId();
 
             $itemStmt  = $pdo->prepare(
-                'INSERT INTO order_items (order_id, bouquet_id, quantity, unit_price) VALUES (?, ?, ?, ?)'
+                'INSERT INTO order_items (order_id, bouquet_id, quantity, unit_price)
+                 VALUES (?, ?, ?, ?)'
             );
             $stockStmt = $pdo->prepare(
                 'UPDATE bouquets SET stock = stock - ? WHERE id = ? AND stock >= ?'
             );
 
             foreach ($cart as $productId => $item) {
+                // Skip custom bouquets — no DB row to update stock for
+                if (!is_numeric($productId)) continue;
+
+                // ✅ $item['price'] is now the DB-verified price from $validatedCart
                 $itemStmt->execute([$orderId, $productId, $item['qty'], $item['price']]);
                 $stockStmt->execute([$item['qty'], $productId, $item['qty']]);
+
                 if ($stockStmt->rowCount() === 0) {
                     $pdo->rollBack();
-                    flash(htmlspecialchars($item['name']) . ' is no longer available in the requested quantity.', 'error');
+                    flash(
+                        htmlspecialchars($item['name'], ENT_QUOTES, 'UTF-8')
+                        . ' is no longer available in the requested quantity.',
+                        'error'
+                    );
                     header('Location: /bloom-aura/pages/cart.php');
                     exit;
                 }
@@ -98,206 +191,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $paymentOptions = [
-    'cod'  => ['label' => 'Cash on Delivery',  'icon' => '💵'],
-    'upi'  => ['label' => 'UPI (Simulated)',    'icon' => '📱'],
-    'card' => ['label' => 'Card (Simulated)',   'icon' => '💳'],
+    'cod'  => ['label' => 'Cash on Delivery', 'icon' => '💵'],
+    'upi'  => ['label' => 'UPI (Simulated)',   'icon' => '📱'],
+    'card' => ['label' => 'Card (Simulated)',  'icon' => '💳'],
 ];
 
 $pageTitle = 'Checkout — Bloom Aura';
 $pageCss   = 'checkout';
 require_once __DIR__ . '/../includes/header.php';
-?>
-
-<nav class="breadcrumb" aria-label="Breadcrumb">
-    <ol>
-        <li><a href="/bloom-aura/">Home</a></li>
-        <li><a href="/bloom-aura/pages/cart.php">Cart</a></li>
-        <li aria-current="page">Checkout</li>
-    </ol>
-</nav>
-
-<div class="page-container">
-    <h1 class="checkout-page-title">🛍️ Checkout</h1>
-
-    <?php if (!empty($errors['db'])): ?>
-        <div class="alert alert-error" role="alert">
-            <?= htmlspecialchars($errors['db'], ENT_QUOTES, 'UTF-8') ?>
-        </div>
-    <?php endif; ?>
-
-    <div class="checkout-layout">
-
-        <!-- ── LEFT: Delivery + Payment Form ── -->
-        <div class="checkout-form-wrap">
-            <div class="checkout-form">
-
-                <div class="checkout-form-header">
-                    <h2>🚚 Delivery Details</h2>
-                    <p>Tell us where to send your blooms</p>
-                </div>
-
-                <div class="checkout-form-body">
-                    <form action="/bloom-aura/pages/checkout.php" method="POST" novalidate>
-                        <?php csrf_field(); ?>
-
-                        <!-- Full Name -->
-                        <div class="form-group <?= isset($errors['name']) ? 'has-error' : '' ?>">
-                            <label for="co-name">Full Name</label>
-                            <input type="text" id="co-name" name="name"
-                                   value="<?= htmlspecialchars($old['name'] ?? $_SESSION['user_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                                   placeholder="e.g. Kiran Sharma"
-                                   required autocomplete="name">
-                            <?php if (isset($errors['name'])): ?>
-                                <span class="field-error"><?= htmlspecialchars($errors['name'], ENT_QUOTES, 'UTF-8') ?></span>
-                            <?php endif; ?>
-                        </div>
-
-                        <!-- Street Address -->
-                        <div class="form-group <?= isset($errors['address']) ? 'has-error' : '' ?>">
-                            <label for="co-address">Street Address</label>
-                            <input type="text" id="co-address" name="address"
-                                   value="<?= htmlspecialchars($old['address'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                                   placeholder="House / Flat No, Street, Locality"
-                                   required autocomplete="street-address">
-                            <?php if (isset($errors['address'])): ?>
-                                <span class="field-error"><?= htmlspecialchars($errors['address'], ENT_QUOTES, 'UTF-8') ?></span>
-                            <?php endif; ?>
-                        </div>
-
-                        <!-- City + PIN -->
-                        <div class="form-row">
-                            <div class="form-group <?= isset($errors['city']) ? 'has-error' : '' ?>">
-                                <label for="co-city">City</label>
-                                <input type="text" id="co-city" name="city"
-                                       value="<?= htmlspecialchars($old['city'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                                       placeholder="e.g. Bangalore"
-                                       required autocomplete="address-level2">
-                                <?php if (isset($errors['city'])): ?>
-                                    <span class="field-error"><?= htmlspecialchars($errors['city'], ENT_QUOTES, 'UTF-8') ?></span>
-                                <?php endif; ?>
-                            </div>
-
-                            <div class="form-group <?= isset($errors['pincode']) ? 'has-error' : '' ?>">
-                                <label for="co-pincode">PIN Code</label>
-                                <input type="text" id="co-pincode" name="pincode"
-                                       value="<?= htmlspecialchars($old['pincode'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                                       placeholder="6-digit PIN"
-                                       maxlength="6" inputmode="numeric" pattern="\d{6}"
-                                       required autocomplete="postal-code">
-                                <?php if (isset($errors['pincode'])): ?>
-                                    <span class="field-error"><?= htmlspecialchars($errors['pincode'], ENT_QUOTES, 'UTF-8') ?></span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-
-                        <!-- Phone -->
-                        <div class="form-group <?= isset($errors['phone']) ? 'has-error' : '' ?>">
-                            <label for="co-phone">Phone Number</label>
-                            <input type="tel" id="co-phone" name="phone"
-                                   value="<?= htmlspecialchars($old['phone'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                                   placeholder="10-digit mobile number"
-                                   maxlength="10" inputmode="numeric" pattern="\d{10}"
-                                   required autocomplete="tel">
-                            <?php if (isset($errors['phone'])): ?>
-                                <span class="field-error"><?= htmlspecialchars($errors['phone'], ENT_QUOTES, 'UTF-8') ?></span>
-                            <?php endif; ?>
-                        </div>
-
-                        <!-- Payment Method -->
-                        <h3 class="checkout-section-title">💳 Payment Method</h3>
-
-                        <div class="payment-options" role="group" aria-label="Payment method">
-                            <?php foreach ($paymentOptions as $val => $opt): ?>
-                                <label class="payment-option">
-                                    <input type="radio" name="payment" value="<?= $val ?>"
-                                           <?= ($old['payment'] ?? '') === $val ? 'checked' : '' ?>>
-                                    <span class="payment-option-icon"><?= $opt['icon'] ?></span>
-                                    <?= htmlspecialchars($opt['label'], ENT_QUOTES, 'UTF-8') ?>
-                                </label>
-                            <?php endforeach; ?>
-                        </div>
-
-                        <?php if (isset($errors['payment'])): ?>
-                            <span class="field-error" style="margin-top:.4rem;display:block;">
-                                <?= htmlspecialchars($errors['payment'], ENT_QUOTES, 'UTF-8') ?>
-                            </span>
-                        <?php endif; ?>
-
-                        <!-- Submit -->
-                        <button type="submit" class="checkout-submit-btn">
-                            Place Order ₹<?= number_format($total, 2) ?> ✨
-                        </button>
-
-                        <!-- Secure badges -->
-                        <div class="secure-badges" aria-label="Security assurances">
-                            <span class="secure-badge">🔒 Secure Checkout</span>
-                            <span class="secure-badge">💳 Cards</span>
-                            <span class="secure-badge">📱 UPI</span>
-                            <span class="secure-badge">💵 COD</span>
-                        </div>
-
-                    </form>
-                </div><!-- /.checkout-form-body -->
-            </div><!-- /.checkout-form -->
-        </div><!-- /.checkout-form-wrap -->
-
-        <!-- ── RIGHT: Order Summary ── -->
-        <aside class="checkout-summary" aria-label="Order Summary">
-
-            <div class="checkout-summary-head">
-                <h2>Order Summary</h2>
-                <p><?= count($cart) ?> item<?= count($cart) !== 1 ? 's' : '' ?> in your bag</p>
-            </div>
-
-            <div class="checkout-summary-body">
-
-                <?php if ($delivery === 0): ?>
-                    <div class="checkout-delivery-banner">
-                        🚚 <span>You qualify for <strong>FREE delivery!</strong></span>
-                    </div>
-                <?php endif; ?>
-
-                <!-- Items -->
-                <?php foreach ($cart as $item): ?>
-                    <div class="checkout-item">
-                        <span class="checkout-item-name">
-                            <?= htmlspecialchars($item['name'], ENT_QUOTES, 'UTF-8') ?>
-                            <span class="checkout-item-qty">× <?= (int)$item['qty'] ?></span>
-                        </span>
-                        <span class="checkout-item-price">₹<?= number_format($item['price'] * $item['qty'], 2) ?></span>
-                    </div>
-                <?php endforeach; ?>
-
-                <hr class="summary-divider">
-
-                <div class="summary-row">
-                    <span>Subtotal</span>
-                    <span class="val">₹<?= number_format($subtotal, 2) ?></span>
-                </div>
-
-                <div class="summary-row">
-                    <span>Delivery</span>
-                    <span class="val <?= $delivery === 0 ? 'free' : '' ?>">
-                        <?= $delivery === 0 ? 'FREE' : '₹' . number_format($delivery, 2) ?>
-                    </span>
-                </div>
-
-                <?php if ($discount > 0): ?>
-                    <div class="summary-row">
-                        <span>Discount (BLOOM10)</span>
-                        <span class="val discount">–₹<?= number_format($discount, 2) ?></span>
-                    </div>
-                <?php endif; ?>
-
-                <div class="summary-total-row">
-                    <span class="t-lbl">Total</span>
-                    <span class="t-val">₹<?= number_format($total, 2) ?></span>
-                </div>
-
-            </div><!-- /.checkout-summary-body -->
-        </aside>
-
-    </div><!-- /.checkout-layout -->
-</div><!-- /.page-container -->
-
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
