@@ -191,5 +191,4 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<script src="/bloom-aura/assets/js/validate.js"></script>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

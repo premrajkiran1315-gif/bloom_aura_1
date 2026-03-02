@@ -95,19 +95,25 @@ $safeCssSlug = in_array($pageCss ?? '', $allowedPageCss, true) ? ($pageCss ?? ''
     <!-- ③ Responsive breakpoints — ALWAYS last -->
     <link rel="stylesheet" href="/bloom-aura/assets/css/responsive.css">
 
-    <!-- Home page JS — loaded conditionally -->
-    <?php if (($pageCss ?? '') === 'home'): ?>
-    <script src="/bloom-aura/assets/js/home.js" defer></script>
-    <?php endif; ?>
+    <!-- main.js — loaded on EVERY page (nav, flash dismiss, dropdowns) -->
+    <script src="/bloom-aura/assets/js/main.js" defer></script>
 
-    <!-- Customize page JS — loaded conditionally -->
-    <?php if (($pageCss ?? '') === 'customize'): ?>
-    <script src="/bloom-aura/assets/js/customize.js" defer></script>
-    <?php endif; ?>
-
-    <!-- Profile page JS — loaded conditionally -->
-    <?php if (($pageCss ?? '') === 'profile'): ?>
-    <script src="/bloom-aura/assets/js/profile.js" defer></script>
+    <!-- Page-specific JS — one file per page, matched by $pageCss slug -->
+    <?php
+    // Map each pageCss slug to its JS file (only slugs that have a JS file)
+    $pageJsMap = [
+        'home'     => 'home.js',
+        'shop'     => 'shop.js',
+        'product'  => 'product.js',
+        'cart'     => 'cart.js',
+        'auth'     => 'validate.js',
+        'profile'  => 'profile.js',
+        'customize'=> 'customize.js',
+    ];
+    $currentSlug = $pageCss ?? '';
+    if (isset($pageJsMap[$currentSlug])):
+    ?>
+    <script src="/bloom-aura/assets/js/<?= $pageJsMap[$currentSlug] ?>" defer></script>
     <?php endif; ?>
 </head>
 <body>
