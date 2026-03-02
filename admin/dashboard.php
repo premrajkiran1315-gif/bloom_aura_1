@@ -12,7 +12,6 @@ $adminName = htmlspecialchars($_SESSION['admin_name'], ENT_QUOTES, 'UTF-8');
 
 try {
     $pdo = getPDO();
-
     $revenue   = $pdo->query('SELECT COALESCE(SUM(total), 0) FROM orders')->fetchColumn();
     $orders    = $pdo->query('SELECT COUNT(*) FROM orders')->fetchColumn();
     $customers = $pdo->query('SELECT COUNT(*) FROM users WHERE role = "customer" AND is_active = 1')->fetchColumn();
@@ -21,17 +20,14 @@ try {
 
     $recentOrders = $pdo->query(
         'SELECT o.id, u.name AS customer, o.total, o.status, o.created_at
-         FROM orders o
-         JOIN users u ON o.user_id = u.id
+         FROM orders o JOIN users u ON o.user_id = u.id
          ORDER BY o.created_at DESC LIMIT 5'
     )->fetchAll();
 
     $topProducts = $pdo->query(
         'SELECT b.name, SUM(oi.quantity) AS units_sold, SUM(oi.quantity * oi.unit_price) AS revenue
-         FROM order_items oi
-         JOIN bouquets b ON oi.bouquet_id = b.id
-         GROUP BY oi.bouquet_id
-         ORDER BY units_sold DESC LIMIT 5'
+         FROM order_items oi JOIN bouquets b ON oi.bouquet_id = b.id
+         GROUP BY oi.bouquet_id ORDER BY units_sold DESC LIMIT 5'
     )->fetchAll();
 
 } catch (RuntimeException $e) {
@@ -49,6 +45,7 @@ try {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/bloom-aura/assets/css/admin.css">
+    <link rel="stylesheet" href="/bloom-aura/assets/css/admin_dashboard.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js" defer></script>
 </head>
 <body class="admin-body">
@@ -58,7 +55,6 @@ try {
 
     <main class="admin-main">
 
-        <!-- Topbar -->
         <div class="admin-topbar">
             <h1 class="admin-page-title">Dashboard</h1>
             <div class="admin-topbar-right">
@@ -69,7 +65,6 @@ try {
             </div>
         </div>
 
-        <!-- Content -->
         <div class="admin-content">
 
             <?php if (!empty($error)): ?>
@@ -78,13 +73,11 @@ try {
 
             <!-- KPI Grid -->
             <div class="adm-kpi-grid">
-
                 <div class="adm-kpi kpi-pink">
                     <div class="adm-kpi-icon">💰</div>
                     <div class="adm-kpi-val">₹<?= number_format((float)$revenue, 2) ?></div>
                     <div class="adm-kpi-label">Total Revenue</div>
                 </div>
-
                 <div class="adm-kpi kpi-gold">
                     <div class="adm-kpi-icon">📦</div>
                     <div class="adm-kpi-val"><?= (int)$orders ?></div>
@@ -93,22 +86,19 @@ try {
                         <div class="adm-kpi-sub"><?= (int)$pending ?> pending</div>
                     <?php endif; ?>
                 </div>
-
                 <div class="adm-kpi kpi-green">
                     <div class="adm-kpi-icon">👥</div>
                     <div class="adm-kpi-val"><?= (int)$customers ?></div>
                     <div class="adm-kpi-label">Active Customers</div>
                 </div>
-
                 <div class="adm-kpi kpi-blue">
                     <div class="adm-kpi-icon">⭐</div>
                     <div class="adm-kpi-val"><?= $avgRating > 0 ? $avgRating : '—' ?></div>
                     <div class="adm-kpi-label">Avg Rating</div>
                 </div>
+            </div>
 
-            </div><!-- /.adm-kpi-grid -->
-
-            <!-- Tables Row -->
+            <!-- Dashboard 2-col row -->
             <div class="adm-dash-row">
 
                 <!-- Recent Orders -->
@@ -159,7 +149,7 @@ try {
                 <div class="adm-card">
                     <div class="adm-card-head">
                         <h4>Top Products</h4>
-                        <span>by units sold</span>
+                        <span class="label-muted">by units sold</span>
                     </div>
                     <div class="adm-card-body">
                         <?php if (empty($topProducts)): ?>

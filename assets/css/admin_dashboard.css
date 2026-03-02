@@ -1,0 +1,123 @@
+/**
+ * bloom-aura/assets/css/admin_dashboard.css
+ * ─────────────────────────────────────────────────────────────
+ * Dashboard-specific styles — loaded ONLY on admin/dashboard.php
+ * Requires admin.css to be loaded first.
+ * Contains: KPI grid, KPI cards, dashboard 2-col row,
+ *           adm-card (head/body), view-all link, chart wrapper.
+ * ─────────────────────────────────────────────────────────────
+ */
+
+/* ══════════════════════════════════════════════════════
+   KPI GRID
+══════════════════════════════════════════════════════ */
+.adm-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+/* ══════════════════════════════════════════════════════
+   KPI CARD
+══════════════════════════════════════════════════════ */
+.adm-kpi {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 16px;
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+  transition: transform .2s, border-color .2s;
+}
+.adm-kpi:hover {
+  transform: translateY(-3px);
+  border-color: rgba(214,51,132,.2);
+}
+
+/* Coloured top accent bar per card type */
+.adm-kpi::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.adm-kpi.kpi-pink::before  { background: linear-gradient(90deg, #d63384, #ff4d94); }
+.adm-kpi.kpi-gold::before  { background: linear-gradient(90deg, #f59e0b, #fcd34d); }
+.adm-kpi.kpi-green::before { background: linear-gradient(90deg, #10b981, #6ee7b7); }
+.adm-kpi.kpi-blue::before  { background: linear-gradient(90deg, #6366f1, #a5b4fc); }
+
+.adm-kpi-icon  { font-size: 1.8rem; margin-bottom: 14px; display: block; }
+.adm-kpi-val   { font-size: 1.9rem; font-weight: 800; color: #fff; line-height: 1; margin-bottom: 6px; }
+.adm-kpi-label { font-size: .73rem; color: rgba(255,255,255,.4); font-weight: 500; text-transform: uppercase; letter-spacing: .6px; }
+.adm-kpi-sub   { font-size: .72rem; color: rgba(255,255,255,.25); margin-top: 8px; }
+
+/* ══════════════════════════════════════════════════════
+   DASHBOARD 2-COLUMN ROW
+   (recent orders left, top products right)
+══════════════════════════════════════════════════════ */
+.adm-dash-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* ══════════════════════════════════════════════════════
+   ADM CARD (panel card inside dashboard)
+══════════════════════════════════════════════════════ */
+.adm-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.adm-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.adm-card-head h4 {
+  color: #fff;
+  font-size: .95rem;
+  font-weight: 700;
+  margin: 0;
+}
+.adm-card-head span,
+.label-muted {
+  color: rgba(255,255,255,.3);
+  font-size: .75rem;
+}
+.adm-card-body { padding: 0; }
+
+.adm-view-all-link {
+  color: var(--adm-pink-hover);
+  font-size: .78rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color .2s;
+}
+.adm-view-all-link:hover { color: #fff; text-decoration: none; }
+
+/* ══════════════════════════════════════════════════════
+   CHART WRAPPER
+══════════════════════════════════════════════════════ */
+.chart-wrap { position: relative; height: 220px; }
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .adm-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .adm-dash-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .adm-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .adm-kpi-grid { grid-template-columns: 1fr; }
+}

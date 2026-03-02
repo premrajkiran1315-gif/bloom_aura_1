@@ -1,0 +1,240 @@
+/**
+ * bloom-aura/assets/css/admin_orders.css
+ * ─────────────────────────────────────────────────────────────
+ * Orders page-specific styles — loaded ONLY on admin/orders.php
+ * Requires admin.css to be loaded first.
+ * Contains: toolbar, filter tabs, search input, order table
+ *           cells (order ID, customer, delivery, amount,
+ *           payment badge, date, inline status form).
+ * ─────────────────────────────────────────────────────────────
+ */
+
+/* ══════════════════════════════════════════════════════
+   ORDERS TOOLBAR
+   (filter tabs left + search form right)
+══════════════════════════════════════════════════════ */
+.adm-order-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+/* ── Filter tabs ── */
+.adm-filter-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.adm-filter-btn {
+  padding: 7px 16px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  color: rgba(255,255,255,.5);
+  border-radius: 30px;
+  font-size: .78rem;
+  font-weight: 600;
+  font-family: var(--font-admin);
+  text-decoration: none;
+  transition: all .2s;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.adm-filter-btn:hover,
+.adm-filter-btn.active {
+  background: rgba(214,51,132,.2);
+  border-color: #d63384;
+  color: #ff79b0;
+  text-decoration: none;
+}
+
+/* ── ID search form ── */
+.adm-id-search-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.adm-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.adm-search-icon {
+  position: absolute;
+  left: 12px;
+  color: rgba(255,255,255,.25);
+  font-size: .8rem;
+  pointer-events: none;
+}
+.adm-search-input {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  padding: 8px 14px 8px 34px;
+  color: #fff;
+  font-family: var(--font-admin);
+  font-size: .84rem;
+  width: 180px;
+  outline: none;
+  transition: border-color .2s;
+  -moz-appearance: textfield;
+}
+.adm-search-input:focus { border-color: var(--adm-pink); }
+.adm-search-input::placeholder { color: rgba(255,255,255,.22); }
+.adm-search-input::-webkit-outer-spin-button,
+.adm-search-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+/* ══════════════════════════════════════════════════════
+   ORDER ID CELL
+══════════════════════════════════════════════════════ */
+.adm-order-id {
+  font-weight: 700;
+  color: var(--adm-pink-hover);
+  font-size: .9rem;
+}
+
+/* ══════════════════════════════════════════════════════
+   CUSTOMER CELL
+══════════════════════════════════════════════════════ */
+.adm-customer-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.adm-cust-av-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d63384, #6366f1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .78rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.adm-cust-name-text {
+  font-size: .85rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.85);
+  white-space: nowrap;
+}
+.adm-cust-email {
+  font-size: .72rem;
+  color: rgba(255,255,255,.3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+/* ══════════════════════════════════════════════════════
+   DELIVERY CELL
+══════════════════════════════════════════════════════ */
+.adm-delivery-name {
+  font-size: .84rem;
+  color: rgba(255,255,255,.75);
+  font-weight: 500;
+}
+.adm-delivery-city {
+  font-size: .72rem;
+  color: rgba(255,255,255,.3);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ══════════════════════════════════════════════════════
+   AMOUNT CELL
+══════════════════════════════════════════════════════ */
+.adm-amount {
+  font-size: .92rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ══════════════════════════════════════════════════════
+   PAYMENT BADGE
+══════════════════════════════════════════════════════ */
+.adm-payment-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.adm-pay-cod  { background: rgba(245,158,11,.15); color: #fcd34d; }
+.adm-pay-upi  { background: rgba(99,102,241,.15);  color: #a5b4fc; }
+.adm-pay-card { background: rgba(16,185,129,.15);  color: #6ee7b7; }
+
+/* ══════════════════════════════════════════════════════
+   DATE CELL
+══════════════════════════════════════════════════════ */
+.adm-date-main { font-size: .83rem; color: rgba(255,255,255,.7); }
+.adm-date-time { font-size: .7rem;  color: rgba(255,255,255,.28); margin-top: 2px; }
+
+/* ══════════════════════════════════════════════════════
+   INLINE STATUS UPDATE FORM
+══════════════════════════════════════════════════════ */
+.adm-status-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.adm-status-select {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px;
+  color: rgba(255,255,255,.7);
+  font-family: var(--font-admin);
+  font-size: .78rem;
+  padding: 5px 8px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color .2s;
+}
+.adm-status-select:focus { border-color: var(--adm-pink); }
+.adm-status-select option { background: #1a1023; }
+.adm-update-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--adm-pink-glow);
+  border: 1px solid rgba(214,51,132,.3);
+  border-radius: 7px;
+  color: var(--adm-pink-hover);
+  font-size: .78rem;
+  cursor: pointer;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.adm-update-btn:hover {
+  background: rgba(214,51,132,.3);
+  border-color: var(--adm-pink);
+  color: #fff;
+}
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .adm-order-toolbar { flex-direction: column; align-items: flex-start; }
+  .adm-id-search-form { width: 100%; }
+  .adm-search-input { width: 100%; }
+}
+@media (max-width: 600px) {
+  .adm-filter-tabs { gap: 6px; }
+  .adm-filter-btn  { padding: 6px 12px; font-size: .73rem; }
+}
