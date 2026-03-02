@@ -15,7 +15,7 @@ require_once __DIR__ . '/../includes/flash.php';
 
 /* ── Must be logged in ── */
 if (empty($_SESSION['user_id'])) {
-    flash('info', 'Please log in to build your custom bouquet.');
+    flash('Please log in to build your custom bouquet.', 'info');
     header('Location: /bloom-aura/pages/login.php?redirect=customize');
     exit;
 }
@@ -64,13 +64,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'image'     => '',
         ];
 
-        flash('success', '🌸 Custom bouquet added to cart!');
+        flash('🌸 Custom bouquet added to cart!', 'success');
         header('Location: /bloom-aura/pages/cart.php');
         exit;
     }
 
     /* keep errors for display */
-    foreach ($errors as $e) flash('error', $e);
+    foreach ($errors as $e) flash($e, 'error');
 }
 
 $pageTitle = 'Customize Bouquet — Bloom Aura';
