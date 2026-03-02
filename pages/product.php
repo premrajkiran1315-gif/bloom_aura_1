@@ -185,18 +185,38 @@ try {
 // ── Related products ──────────────────────────────────────────────────────────
 $related = [];
 try {
-    $pdo   = getPDO();
-    $rStmt = $pdo->prepare(
-        "SELECT b.name, b.slug, b.price, b.image, c.name AS category_name, c.slug AS category_slug
-         FROM bouquets b
-         LEFT JOIN categories c ON c.id = b.category_id
-         WHERE b.category_id = ? AND b.id != ? AND b.is_active = 1
-         ORDER BY RAND()
-         LIMIT 4"
+    $pdo = getPDO();
+
+    // Step 1: Get the total count of eligible related products
+    $countStmt = $pdo->prepare(
+        "SELECT COUNT(*) FROM bouquets
+         WHERE category_id = ? AND id != ? AND is_active = 1"
     );
-    $rStmt->execute([(int)$bouquet['category_id'], $bouquetId]);
-    $related = $rStmt->fetchAll();
-} catch (RuntimeException $e) {}
+    $countStmt->execute([(int)$bouquet['category_id'], $bouquetId]);
+    $relatedCount = (int)$countStmt->fetchColumn();
+
+    if ($relatedCount > 0) {
+        // Step 2: Pick a random offset — PHP-side, no MySQL RAND()
+        $maxOffset = max(0, $relatedCount - 4);
+        $offset    = $maxOffset > 0 ? random_int(0, $maxOffset) : 0;
+
+        // Step 3: Fetch 4 items from that offset — fast index scan
+        $rStmt = $pdo->prepare(
+            "SELECT b.name, b.slug, b.price, b.image,
+                    c.name AS category_name, c.slug AS category_slug
+             FROM bouquets b
+             LEFT JOIN categories c ON c.id = b.category_id
+             WHERE b.category_id = ? AND b.id != ? AND b.is_active = 1
+             ORDER BY b.id ASC
+             LIMIT 4 OFFSET ?"
+        );
+        $rStmt->execute([(int)$bouquet['category_id'], $bouquetId, $offset]);
+        $related = $rStmt->fetchAll();
+    }
+
+} catch (RuntimeException $e) {
+    $related = []; // Fail silently — related products are non-critical
+}
 
 // ── Cart count for header ─────────────────────────────────────────────────────
 $cartCount = 0;
