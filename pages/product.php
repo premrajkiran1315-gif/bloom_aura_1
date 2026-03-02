@@ -105,13 +105,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: /bloom-aura/pages/login.php');
             exit;
         }
-        $rating  = max(1, min(5, (int)($_POST['rating'] ?? 0)));
+        $rating  = (int)($_POST['rating'] ?? 0);
         $comment = trim($_POST['comment'] ?? '');
 
-        if ($rating < 1 || $rating > 5) {
-            flash('Please select a rating between 1 and 5.', 'error');
+        if (empty($rating) || $rating < 1 || $rating > 5) {
+            flash('Please select a rating between 1 and 5 stars.', 'error');
         } elseif (strlen($comment) < 5) {
-            flash('Please write at least a brief comment.', 'error');
+            flash('Please write at least 5 characters in your review.', 'error');
         } else {
             try {
                 $pdo  = getPDO();
@@ -149,6 +149,8 @@ if ($loggedIn) {
 $reviews     = [];
 $avgRating   = 0;
 $reviewCount = 0;
+$userHasReviewed = false;
+
 try {
     $pdo = getPDO();
 
@@ -171,6 +173,13 @@ try {
     $ratingData  = $ratingData->fetch();
     $avgRating   = (float)($ratingData['avg_rating']  ?? 0);
     $reviewCount = (int)($ratingData['review_count']   ?? 0);
+
+    // Check if current user has already reviewed this product
+    if ($loggedIn) {
+        $userReviewStmt = $pdo->prepare('SELECT id FROM reviews WHERE user_id = ? AND bouquet_id = ?');
+        $userReviewStmt->execute([$userId, $bouquetId]);
+        $userHasReviewed = (bool)$userReviewStmt->fetch();
+    }
 } catch (RuntimeException $e) {}
 
 // ── Related products ──────────────────────────────────────────────────────────
@@ -467,18 +476,23 @@ require_once __DIR__ . '/../includes/header.php';
                         Log in
                     </a> to leave a review.
                 </p>
+            <?php elseif ($userHasReviewed): ?>
+                <p class="review-already-posted" style="background: #f0f9ff; border: 1px solid #bee3f8; border-radius: 6px; padding: 12px 16px; color: #2c5282;">
+                    ✓ You've already reviewed this product. Thank you for sharing your feedback! 🙏
+                </p>
             <?php else: ?>
             <form method="POST"
                   action="/bloom-aura/pages/product.php?slug=<?= urlencode($slug) ?>#reviews"
                   class="review-form"
-                  novalidate>
+                  id="review-form">
                 <?php csrf_field(); ?>
                 <input type="hidden" name="action" value="submit_review">
 
                 <!-- Star rating picker -->
-                <div class="star-rating-input" role="group" aria-label="Rating">
+                <div class="star-rating-input" role="group" aria-label="Rating (required)">
+                    <div class="rating-error" id="rating-error" role="alert" style="display:none; color: var(--color-error, #ff6b6b); font-size: 0.875rem; margin-bottom: 0.5rem;">Please select a rating</div>
                     <?php for ($i = 5; $i >= 1; $i--): ?>
-                        <input type="radio" id="star<?= $i ?>" name="rating" value="<?= $i ?>">
+                        <input type="radio" id="star<?= $i ?>" name="rating" value="<?= $i ?>" required>
                         <label for="star<?= $i ?>" aria-label="<?= $i ?> stars">★</label>
                     <?php endfor; ?>
                 </div>
@@ -487,6 +501,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <textarea name="comment" rows="4"
                               placeholder="Share your thoughts about this bouquet…"
                               class="review-textarea"
+                              minlength="5"
                               required></textarea>
                 </div>
 

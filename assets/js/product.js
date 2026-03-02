@@ -123,13 +123,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ── Flash messages — auto-dismiss after 4s ──────────────── */
   document.querySelectorAll('.flash').forEach(function (flash) {
+    // Error messages persist longer (10s), others 5s
+    const timeout = flash.classList.contains('flash-error') ? 10000 : 5000;
     setTimeout(function () {
       flash.style.transition = 'opacity .4s, max-height .4s';
       flash.style.opacity    = '0';
       flash.style.maxHeight  = '0';
       flash.style.overflow   = 'hidden';
       setTimeout(function () { flash.remove(); }, 450);
-    }, 4000);
+    }, timeout);
   });
 
   /* ── Wishlist button — optimistic text swap ──────────────── */
@@ -156,5 +158,50 @@ document.addEventListener('DOMContentLoaded', function () {
       img.style.willChange = 'auto';
     });
   });
+
+  /* ── Review form — basic UX ──────────────────────────────── */
+  const reviewForm = document.getElementById('review-form');
+  if (reviewForm) {
+    const ratingInputs = reviewForm.querySelectorAll('input[name="rating"]');
+    const commentTextarea = reviewForm.querySelector('textarea[name="comment"]');
+    const ratingError = document.getElementById('rating-error');
+
+    // Clear rating error when user selects a rating
+    ratingInputs.forEach(input => {
+      input.addEventListener('change', function () {
+        if (ratingError) {
+          ratingError.style.display = 'none';
+        }
+      });
+    });
+
+    // Set custom validation message for textarea
+    if (commentTextarea) {
+      commentTextarea.addEventListener('invalid', function (e) {
+        if (!this.value) {
+          this.setCustomValidity('Please write a comment');
+        } else if (this.value.length < 5) {
+          this.setCustomValidity('Comment must be at least 5 characters (you have ' + this.value.length + ')');
+        } else {
+          this.setCustomValidity('');
+        }
+      });
+
+      commentTextarea.addEventListener('input', function () {
+        this.setCustomValidity('');
+      });
+    }
+
+    // Show rating error if trying to submit without rating
+    reviewForm.addEventListener('submit', function (e) {
+      const ratingSelected = Array.from(ratingInputs).some(inp => inp.checked);
+      if (!ratingSelected) {
+        e.preventDefault();
+        if (ratingError) {
+          ratingError.style.display = 'block';
+        }
+      }
+    });
+  }
 
 });

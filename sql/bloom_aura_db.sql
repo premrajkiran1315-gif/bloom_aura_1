@@ -31,7 +31,9 @@ CREATE TABLE IF NOT EXISTS categories (
     name        VARCHAR(100) NOT NULL,
     slug        VARCHAR(120) NOT NULL UNIQUE,
     description TEXT,
-    INDEX idx_slug (slug)
+    emoji       VARCHAR(10) DEFAULT NULL,
+    INDEX idx_slug  (slug),
+    INDEX idx_emoji (emoji)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ── BOUQUETS ─────────────────────────────────────────────────────
@@ -69,9 +71,9 @@ CREATE TABLE IF NOT EXISTS orders (
     payment_method   ENUM('cod','upi','card') NOT NULL,
     created_at       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT,
-    INDEX idx_user_id   (user_id),
-    INDEX idx_status    (status),
-    INDEX idx_created_at(created_at)
+    INDEX idx_user_id    (user_id),
+    INDEX idx_status     (status),
+    INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ── ORDER ITEMS ──────────────────────────────────────────────────
@@ -80,8 +82,8 @@ CREATE TABLE IF NOT EXISTS order_items (
     order_id    INT UNSIGNED   NOT NULL,
     bouquet_id  INT UNSIGNED   NOT NULL,
     quantity    SMALLINT UNSIGNED NOT NULL DEFAULT 1,
-    unit_price  DECIMAL(10,2)  NOT NULL,  -- snapshot of price at time of purchase
-    FOREIGN KEY (order_id)   REFERENCES orders(id)  ON DELETE CASCADE,
+    unit_price  DECIMAL(10,2)  NOT NULL,
+    FOREIGN KEY (order_id)   REFERENCES orders(id)   ON DELETE CASCADE,
     FOREIGN KEY (bouquet_id) REFERENCES bouquets(id) ON DELETE RESTRICT,
     INDEX idx_order_id   (order_id),
     INDEX idx_bouquet_id (bouquet_id)
@@ -95,7 +97,7 @@ CREATE TABLE IF NOT EXISTS wishlist (
     added_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE,
     FOREIGN KEY (bouquet_id) REFERENCES bouquets(id) ON DELETE CASCADE,
-    UNIQUE KEY uq_user_bouquet (user_id, bouquet_id),  -- prevent duplicates
+    UNIQUE KEY uq_user_bouquet (user_id, bouquet_id),
     INDEX idx_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -109,7 +111,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE,
     FOREIGN KEY (bouquet_id) REFERENCES bouquets(id) ON DELETE CASCADE,
-    UNIQUE KEY uq_user_review (user_id, bouquet_id), -- one review per product per user
+    UNIQUE KEY uq_user_review (user_id, bouquet_id),
     INDEX idx_bouquet_id (bouquet_id),
     INDEX idx_rating     (rating)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -118,7 +120,7 @@ CREATE TABLE IF NOT EXISTS reviews (
 CREATE TABLE IF NOT EXISTS login_attempts (
     id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     email        VARCHAR(255) NOT NULL,
-    ip_address   VARCHAR(45)  NOT NULL,  -- supports IPv6
+    ip_address   VARCHAR(45)  NOT NULL,
     attempted_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_email        (email),
     INDEX idx_ip           (ip_address),
@@ -135,24 +137,29 @@ INSERT IGNORE INTO users (name, email, password_hash, role, is_active) VALUES
 (
     'Munisha Admin',
     'admin@bloomaura.in',
-    '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- bcrypt of 'Admin@1234'
+    '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
     'admin',
     1
 );
 
--- Seed categories
-INSERT IGNORE INTO categories (name, slug, description) VALUES
-('Bouquets',   'bouquets',   'Fresh hand-tied flower bouquets for every occasion'),
-('Hampers',    'hampers',    'Curated gift hampers with flowers and treats'),
-('Chocolates', 'chocolates', 'Premium chocolates paired with blooms'),
-('Perfumes',   'perfumes',   'Floral-inspired fragrances'),
-('Plants',     'plants',     'Indoor plants and succulents');
+-- Seed categories (with emojis)
+INSERT IGNORE INTO categories (name, slug, description, emoji) VALUES
+('Bouquets',   'bouquets',   'Fresh hand-tied flower bouquets for every occasion', '💐'),
+('Hampers',    'hampers',    'Curated gift hampers with flowers and treats',        '🎁'),
+('Chocolates', 'chocolates', 'Premium chocolates paired with blooms',               '🍫'),
+('Perfumes',   'perfumes',   'Floral-inspired fragrances',                           '🌸'),
+('Plants',     'plants',     'Indoor plants and succulents',                         '🪴');
 
 -- Seed bouquets (sample)
 INSERT IGNORE INTO bouquets (name, slug, description, price, stock, category_id, image) VALUES
-('Rose Romance',     'rose-romance',     '12 red roses for that special someone.',    699.00, 25, 1, 'rose-romance.jpg'),
-('Sunflower Bliss',  'sunflower-bliss',  'Bright sunflowers to lift any spirits.',    549.00, 30, 1, 'sunflower-bliss.jpg'),
-('Pastel Dreams',    'pastel-dreams',    'Soft pastels — perfect for new beginnings.',799.00, 20, 1, 'pastel-dreams.jpg'),
-('Birthday Hamper',  'birthday-hamper',  'Roses, chocolates & a birthday card.',     1299.00, 15, 2, 'birthday-hamper.jpg'),
-('Love Hamper',      'love-hamper',      'Premium roses with Ferrero Rocher.',       1599.00, 10, 2, 'love-hamper.jpg'),
-('Choco Bloom',      'choco-bloom',      'Dark chocolate with dried rose petals.',    499.00, 40, 3, 'choco-bloom.jpg');
+('Rose Romance',     'rose-romance',     '12 red roses for that special someone.',     699.00, 25, 1, 'rose-romance.jpg'),
+('Sunflower Bliss',  'sunflower-bliss',  'Bright sunflowers to lift any spirits.',     549.00, 30, 1, 'sunflower-bliss.jpg'),
+('Pastel Dreams',    'pastel-dreams',    'Soft pastels — perfect for new beginnings.', 799.00, 20, 1, 'pastel-dreams.jpg'),
+('Birthday Hamper',  'birthday-hamper',  'Roses, chocolates & a birthday card.',      1299.00, 15, 2, 'birthday-hamper.jpg'),
+('Love Hamper',      'love-hamper',      'Premium roses with Ferrero Rocher.',        1599.00, 10, 2, 'love-hamper.jpg'),
+('Choco Bloom',      'choco-bloom',      'Dark chocolate with dried rose petals.',     499.00, 40, 3, 'choco-bloom.jpg');
+
+-- ════════════════════════════════════════════════════════════════
+-- SETUP COMPLETE
+-- ════════════════════════════════════════════════════════════════
+SELECT 'Bloom Aura database setup completed successfully!' AS status;
