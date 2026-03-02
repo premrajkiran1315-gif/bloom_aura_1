@@ -115,7 +115,7 @@ try {
 $wishlistIds = [];
 if (!empty($_SESSION['user_id'])) {
     try {
-        $ws = getPDO()->prepare("SELECT bouquet_id FROM wishlists WHERE user_id = ?");
+        $ws = getPDO()->prepare("SELECT bouquet_id FROM wishlist WHERE user_id = ?");
         $ws->execute([$_SESSION['user_id']]);
         $wishlistIds = array_map('intval', $ws->fetchAll(\PDO::FETCH_COLUMN));
     } catch (\Exception $e) {
