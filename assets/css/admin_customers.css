@@ -2,22 +2,10 @@
  * bloom-aura/assets/css/admin_customers.css
  * ─────────────────────────────────────────────────────────────
  * Customers page — pixel-matched to bloom_aura reference HTML.
- * Requires admin.css to be loaded first (tokens, layout, sidebar,
- * topbar, alerts, adm-filter-tabs, adm-pagination inherited).
+ * Requires admin.css first (tokens, layout, sidebar, topbar, alerts).
  *
- * Contains:
- *   • cust-toolbar    — filter tabs + search row
- *   • adm-cust-grid   — auto-fill card grid
- *   • adm-cust-card   — individual customer card
- *   • adm-cust-av     — avatar circle (gradient)
- *   • adm-cust-top    — avatar + name + email + joined
- *   • adm-cust-stat   — stats row (orders / spent / status)
- *   • adm-vip-badge   — gold VIP tag
- *   • status badge    — active / deactivated pill
- *   • cust-toggle-btn — activate / deactivate button
- *   • cust-empty      — empty state
- *   • adm-pagination  — page nav
- *   • Responsive breakpoints
+ * FIX: adm-filter-tabs + adm-filter-btn fully defined HERE
+ * because admin_orders.css is not loaded on this page.
  * ─────────────────────────────────────────────────────────────
  */
 
@@ -31,6 +19,39 @@
   gap: 12px;
   margin-bottom: 24px;
   flex-wrap: wrap;
+}
+
+/* ── Filter pill tabs (self-contained — do NOT rely on admin_orders.css) ── */
+.adm-filter-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.adm-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 18px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 30px;
+  color: rgba(255,255,255,.5);
+  font-family: var(--font-admin);
+  font-size: .78rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .2s, border-color .2s, color .2s;
+}
+
+.adm-filter-btn:hover,
+.adm-filter-btn.active {
+  background: rgba(214,51,132,.2);
+  border-color: #d63384;
+  color: #ff79b0;
+  text-decoration: none;
 }
 
 /* ── Search form ── */
@@ -67,27 +88,23 @@
   outline: none;
   transition: border-color .2s;
 }
-.cust-search-input:focus       { border-color: var(--adm-pink); }
+.cust-search-input:focus        { border-color: var(--adm-pink); }
 .cust-search-input::placeholder { color: rgba(255,255,255,.22); }
 
 .cust-search-btn {
-  padding: 8px 16px;
-  background: var(--adm-pink-glow);
-  border: 1px solid rgba(214,51,132,.3);
+  padding: 8px 18px;
+  background: linear-gradient(135deg, #d63384, #ff4d94);
+  border: none;
   border-radius: 10px;
-  color: var(--adm-pink-hover);
+  color: #fff;
   font-family: var(--font-admin);
   font-size: .82rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: background .2s, border-color .2s, color .2s;
+  transition: opacity .2s;
   white-space: nowrap;
 }
-.cust-search-btn:hover {
-  background: rgba(214,51,132,.25);
-  border-color: var(--adm-pink);
-  color: #fff;
-}
+.cust-search-btn:hover { opacity: .88; }
 
 .cust-clear-btn {
   display: inline-flex;
@@ -119,8 +136,7 @@
 }
 
 /* ══════════════════════════════════════════════════════
-   CUSTOMER CARD GRID
-   Matches reference: .adm-cust-grid
+   CUSTOMER CARD GRID  — reference: .adm-cust-grid
 ══════════════════════════════════════════════════════ */
 .adm-cust-grid {
   display: grid;
@@ -130,8 +146,7 @@
 }
 
 /* ══════════════════════════════════════════════════════
-   CUSTOMER CARD
-   Matches reference: .adm-cust-card
+   CUSTOMER CARD  — reference: .adm-cust-card
 ══════════════════════════════════════════════════════ */
 .adm-cust-card {
   background: var(--adm-surface);
@@ -140,7 +155,6 @@
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 0;
   transition: border-color .2s, transform .2s, box-shadow .2s;
   animation: custCardIn .3s ease both;
   position: relative;
@@ -157,15 +171,10 @@
   box-shadow: 0 8px 28px rgba(214,51,132,.1);
 }
 
-/* Deactivated card — dimmed */
-.adm-cust-card--inactive {
-  opacity: .65;
-}
-.adm-cust-card--inactive:hover {
-  opacity: 1;
-}
+.adm-cust-card--inactive       { opacity: .65; }
+.adm-cust-card--inactive:hover { opacity: 1; }
 
-/* ── Top row: avatar + name ─────────────────────────── */
+/* ── Top row: avatar + info — reference: .adm-cust-top ── */
 .adm-cust-top {
   display: flex;
   align-items: flex-start;
@@ -173,7 +182,7 @@
   margin-bottom: 16px;
 }
 
-/* Avatar circle — gradient set inline by PHP */
+/* Avatar — reference: .adm-cust-av */
 .adm-cust-av {
   width: 40px;
   height: 40px;
@@ -188,12 +197,9 @@
   text-transform: uppercase;
 }
 
-.adm-cust-info {
-  flex: 1;
-  min-width: 0;
-}
+.adm-cust-info { flex: 1; min-width: 0; }
 
-/* Customer name */
+/* Name — reference: .adm-cust-name */
 .adm-cust-name {
   color: #fff;
   font-weight: 600;
@@ -216,14 +222,14 @@
   max-width: 100%;
 }
 
-/* Joined date */
+/* Joined — reference: .adm-cust-since */
 .adm-cust-since {
   color: rgba(255,255,255,.28);
   font-size: .7rem;
   margin-top: 3px;
 }
 
-/* ── VIP badge — matches reference exactly ─────────── */
+/* VIP badge — reference: .adm-vip-badge */
 .adm-vip-badge {
   background: linear-gradient(90deg, #f59e0b, #fcd34d);
   color: #1a1023;
@@ -236,7 +242,7 @@
   flex-shrink: 0;
 }
 
-/* ── Stats row ─────────────────────────────────────── */
+/* ── Stats row — reference: .adm-cust-stat / .adm-cust-s ── */
 .adm-cust-stat {
   display: flex;
   justify-content: space-between;
@@ -246,10 +252,7 @@
   margin-bottom: 14px;
 }
 
-.adm-cust-s {
-  text-align: center;
-  flex: 1;
-}
+.adm-cust-s { text-align: center; flex: 1; }
 
 .adm-cust-s .sv {
   color: #fff;
@@ -258,7 +261,6 @@
   line-height: 1.2;
 }
 
-/* Active / inactive colouring for status sv */
 .sv--active   { color: #6ee7b7; }
 .sv--inactive { color: #fca5a5; }
 
@@ -268,10 +270,8 @@
   margin-top: 2px;
 }
 
-/* ── Status pill row ───────────────────────────────── */
-.adm-cust-status-row {
-  margin-bottom: 12px;
-}
+/* ── Status pill ── */
+.adm-cust-status-row { margin-bottom: 12px; }
 
 .adm-cust-status-badge {
   display: inline-flex;
@@ -283,21 +283,11 @@
   border-radius: 20px;
 }
 
-.badge--active {
-  background: rgba(16,185,129,.15);
-  color: #6ee7b7;
-}
+.badge--active   { background: rgba(16,185,129,.15); color: #6ee7b7; }
+.badge--inactive { background: rgba(239,68,68,.12);  color: #fca5a5; }
 
-.badge--inactive {
-  background: rgba(239,68,68,.12);
-  color: #fca5a5;
-}
-
-/* ── Action button ─────────────────────────────────── */
-.adm-cust-actions form {
-  margin: 0;
-  padding: 0;
-}
+/* ── Toggle button ── */
+.adm-cust-actions form { margin: 0; padding: 0; }
 
 .cust-toggle-btn {
   width: 100%;
@@ -305,7 +295,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 9px 14px;
   border-radius: 9px;
   font-family: var(--font-admin);
   font-size: .78rem;
@@ -314,16 +304,9 @@
   border: 1px solid transparent;
   transition: background .2s, border-color .2s, color .2s, transform .15s;
 }
+.cust-toggle-btn:hover  { transform: translateY(-1px); }
+.cust-toggle-btn:active { transform: translateY(0); }
 
-.cust-toggle-btn:hover {
-  transform: translateY(-1px);
-}
-
-.cust-toggle-btn:active {
-  transform: translateY(0);
-}
-
-/* Deactivate — red */
 .cust-toggle-btn--deactivate {
   background: rgba(239,68,68,.12);
   border-color: rgba(239,68,68,.25);
@@ -335,7 +318,6 @@
   color: #fff;
 }
 
-/* Activate — green */
 .cust-toggle-btn--activate {
   background: rgba(16,185,129,.12);
   border-color: rgba(16,185,129,.25);
@@ -356,20 +338,13 @@
   border: 1.5px dashed rgba(255,255,255,.1);
   border-radius: 18px;
   margin-top: 8px;
+  text-align: center;
 }
-
-.cust-empty a {
-  color: var(--adm-pink-hover);
-  text-decoration: none;
-}
-.cust-empty a:hover {
-  text-decoration: underline;
-}
+.cust-empty a       { color: var(--adm-pink-hover); text-decoration: none; }
+.cust-empty a:hover { text-decoration: underline; }
 
 /* ══════════════════════════════════════════════════════
    PAGINATION
-   Matches shared adm-pagination from admin.css but scoped
-   here with full definition for safety.
 ══════════════════════════════════════════════════════ */
 .adm-pagination {
   display: flex;
@@ -416,37 +391,18 @@
    RESPONSIVE
 ══════════════════════════════════════════════════════ */
 @media (max-width: 1024px) {
-  .adm-cust-grid {
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  }
+  .adm-cust-grid { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 }
 
 @media (max-width: 768px) {
-  .cust-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .cust-search-form {
-    width: 100%;
-  }
-
-  .cust-search-input {
-    width: 100%;
-    flex: 1;
-  }
-
-  .adm-cust-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  }
+  .cust-toolbar      { flex-direction: column; align-items: stretch; }
+  .cust-search-form  { width: 100%; }
+  .cust-search-input { width: 100%; flex: 1; }
+  .adm-filter-tabs   { width: 100%; }
+  .adm-cust-grid     { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 }
 
 @media (max-width: 480px) {
-  .adm-cust-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .adm-filter-tabs {
-    width: 100%;
-  }
+  .adm-cust-grid  { grid-template-columns: 1fr; }
+  .adm-filter-btn { padding: 6px 12px; font-size: .73rem; }
 }
