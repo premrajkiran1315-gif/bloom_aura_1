@@ -40,7 +40,7 @@ if (session_status() !== PHP_SESSION_NONE && !empty($_SESSION['flash'])) {
             <h1 class="admin-page-title"><?= htmlspecialchars($pageTitle ?? '', ENT_QUOTES, 'UTF-8') ?></h1>
             <div class="admin-topbar-right">
                 <span class="admin-greeting">Hello, <?= $adminName ?> 👑</span>
-                <a href="/admin/logout.php" class="btn btn-outline btn-sm">Logout</a>
+                <a href="/bloom-aura/pages/logout.php" class="btn btn-outline btn-sm">Logout</a>
             </div>
         </div>
 

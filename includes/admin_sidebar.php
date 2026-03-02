@@ -68,7 +68,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                 <div class="admin-user-role">Administrator</div>
             </div>
         </div>
-        <a href="/bloom-aura/admin/logout.php" class="admin-logout-btn">
+        <a href="/bloom-aura/pages/logout.php" class="admin-logout-btn">
             <i class="fa-solid fa-right-from-bracket"></i> Logout
         </a>
     </div>

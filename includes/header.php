@@ -104,6 +104,11 @@ $safeCssSlug = in_array($pageCss ?? '', $allowedPageCss, true) ? ($pageCss ?? ''
     <?php if (($pageCss ?? '') === 'customize'): ?>
     <script src="/bloom-aura/assets/js/customize.js" defer></script>
     <?php endif; ?>
+
+    <!-- Profile page JS — loaded conditionally -->
+    <?php if (($pageCss ?? '') === 'profile'): ?>
+    <script src="/bloom-aura/assets/js/profile.js" defer></script>
+    <?php endif; ?>
 </head>
 <body>
 
