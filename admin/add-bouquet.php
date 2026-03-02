@@ -2,6 +2,7 @@
 /**
  * bloom-aura/admin/add-bouquet.php
  * Admin: create a new bouquet with image upload.
+ * FIX: All header() redirects and form actions now use /bloom-aura/ prefix.
  */
 
 session_start();
@@ -12,7 +13,7 @@ require_once __DIR__ . '/../includes/admin_auth_check.php';
 
 // ── Admin guard ───────────────────────────────────────────────────────────────
 if (empty($_SESSION['admin_id']) || ($_SESSION['admin_role'] ?? '') !== 'admin') {
-    header('Location: /admin/login.php');
+    header('Location: /bloom-aura/admin/login.php');
     exit;
 }
 
@@ -22,7 +23,7 @@ $old    = [];
 // ── Fetch categories ──────────────────────────────────────────────────────────
 $categories = [];
 try {
-    $pdo = getPDO();
+    $pdo        = getPDO();
     $categories = $pdo->query('SELECT id, name FROM categories ORDER BY name')->fetchAll();
 } catch (RuntimeException $e) {}
 
@@ -30,10 +31,10 @@ try {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_validate();
 
-    $name        = trim($_POST['name'] ?? '');
+    $name        = trim($_POST['name']        ?? '');
     $description = trim($_POST['description'] ?? '');
-    $price       = trim($_POST['price'] ?? '');
-    $stock       = trim($_POST['stock'] ?? '');
+    $price       = trim($_POST['price']       ?? '');
+    $stock       = trim($_POST['stock']       ?? '');
     $categoryId  = (int)($_POST['category_id'] ?? 0);
     $old         = compact('name', 'description', 'price', 'stock', 'categoryId');
 
@@ -46,12 +47,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Image upload
     $imageName = '';
     if (!empty($_FILES['image']['name'])) {
-        $allowed  = ['image/jpeg', 'image/png', 'image/webp'];
-        $maxSize  = 2 * 1024 * 1024; // 2 MB
-        $finfo    = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $_FILES['image']['tmp_name']);
+        $allowed     = ['image/jpeg', 'image/png', 'image/webp'];
+        $maxSize     = 2 * 1024 * 1024; // 2 MB
+        $finfo       = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType    = finfo_file($finfo, $_FILES['image']['tmp_name']);
         finfo_close($finfo);
-        $ext      = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        $ext         = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
         $allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
 
         if (!in_array($mimeType, $allowed, true) || !in_array($ext, $allowedExts, true)) {
@@ -97,8 +98,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                  VALUES (?, ?, ?, ?, ?, ?, ?, NOW())"
             )->execute([$name, $slug, $description, $price, (int)$stock, $categoryId, $imageName]);
 
-            flash('Bouquet "' . htmlspecialchars($name) . '" added successfully! 🌸', 'success');
-            header('Location: /admin/bouquets.php');
+            flash('Bouquet "' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '" added successfully! 🌸', 'success');
+            header('Location: /bloom-aura/admin/products.php');  // ← FIXED path
             exit;
 
         } catch (RuntimeException $e) {
@@ -118,8 +119,8 @@ require_once __DIR__ . '/../includes/admin_header.php';
 <!-- Breadcrumb -->
 <nav class="breadcrumb" aria-label="Breadcrumb">
     <ol>
-        <li><a href="/admin/dashboard.php">Dashboard</a></li>
-        <li><a href="/admin/bouquets.php">Bouquets</a></li>
+        <li><a href="/bloom-aura/admin/dashboard.php">Dashboard</a></li>
+        <li><a href="/bloom-aura/admin/products.php">Products</a></li>
         <li aria-current="page">Add New</li>
     </ol>
 </nav>
@@ -131,7 +132,8 @@ require_once __DIR__ . '/../includes/admin_header.php';
         <div class="alert alert-error"><?= htmlspecialchars($errors['db'], ENT_QUOTES, 'UTF-8') ?></div>
     <?php endif; ?>
 
-    <form action="/admin/add-bouquet.php" method="POST" enctype="multipart/form-data"
+    <!-- FORM ACTION ← FIXED path -->
+    <form action="/bloom-aura/admin/add-bouquet.php" method="POST" enctype="multipart/form-data"
           class="admin-form" novalidate>
         <?php csrf_field(); ?>
 
@@ -165,10 +167,12 @@ require_once __DIR__ . '/../includes/admin_header.php';
 
                 <div class="form-group">
                     <label for="description">Description</label>
-                    <textarea id="description" name="description" rows="4" maxlength="2000"><?= htmlspecialchars($old['description'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
+                    <textarea id="description" name="description" rows="4" maxlength="2000"><?=
+                        htmlspecialchars($old['description'] ?? '', ENT_QUOTES, 'UTF-8')
+                    ?></textarea>
                 </div>
 
-                <div class="form-row">
+                <div class="admin-two-col">
                     <div class="form-group <?= isset($errors['price']) ? 'has-error' : '' ?>">
                         <label for="price">Price (₹) <span class="required">*</span></label>
                         <input type="number" id="price" name="price" min="1" step="0.01"
@@ -188,7 +192,7 @@ require_once __DIR__ . '/../includes/admin_header.php';
                     </div>
                 </div>
 
-            </div>
+            </div><!-- /.admin-form-main -->
 
             <!-- Image upload panel -->
             <div class="admin-form-sidebar">
@@ -208,15 +212,18 @@ require_once __DIR__ . '/../includes/admin_header.php';
                         <span class="field-error"><?= htmlspecialchars($errors['image'], ENT_QUOTES, 'UTF-8') ?></span>
                     <?php endif; ?>
                 </div>
-            </div>
-        </div>
+            </div><!-- /.admin-form-sidebar -->
+
+        </div><!-- /.admin-form-grid -->
 
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">
                 <i class="fa-solid fa-floppy-disk"></i> Save Bouquet
             </button>
-            <a href="/admin/bouquets.php" class="btn btn-ghost">Cancel</a>
+            <!-- CANCEL link ← FIXED path -->
+            <a href="/bloom-aura/admin/products.php" class="btn btn-ghost">Cancel</a>
         </div>
+
     </form>
 </div><!-- /.page-container -->
 
@@ -227,9 +234,9 @@ document.getElementById('image').addEventListener('change', function () {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = e => {
-        const preview = document.getElementById('image-preview');
+        const preview     = document.getElementById('image-preview');
         const placeholder = document.getElementById('upload-placeholder');
-        preview.src = e.target.result;
+        preview.src    = e.target.result;
         preview.hidden = false;
         placeholder.hidden = true;
     };

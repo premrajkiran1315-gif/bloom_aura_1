@@ -2,6 +2,7 @@
 /**
  * bloom-aura/admin/edit-bouquet.php
  * Admin: edit an existing bouquet. Optionally replace its image.
+ * FIX: All header() redirects and form actions now use /bloom-aura/ prefix.
  */
 
 session_start();
@@ -12,13 +13,13 @@ require_once __DIR__ . '/../includes/admin_auth_check.php';
 
 // ── Admin guard ───────────────────────────────────────────────────────────────
 if (empty($_SESSION['admin_id']) || ($_SESSION['admin_role'] ?? '') !== 'admin') {
-    header('Location: /admin/login.php');
+    header('Location: /bloom-aura/admin/login.php');  // ← FIXED
     exit;
 }
 
 $id = (int)($_GET['id'] ?? 0);
 if ($id <= 0) {
-    header('Location: /admin/bouquets.php');
+    header('Location: /bloom-aura/admin/products.php');  // ← FIXED
     exit;
 }
 
@@ -37,7 +38,7 @@ try {
 
 if (!$bouquet) {
     flash('Bouquet not found.', 'error');
-    header('Location: /admin/bouquets.php');
+    header('Location: /bloom-aura/admin/products.php');  // ← FIXED
     exit;
 }
 
@@ -45,10 +46,10 @@ if (!$bouquet) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_validate();
 
-    $name        = trim($_POST['name'] ?? '');
+    $name        = trim($_POST['name']        ?? '');
     $description = trim($_POST['description'] ?? '');
-    $price       = trim($_POST['price'] ?? '');
-    $stock       = trim($_POST['stock'] ?? '');
+    $price       = trim($_POST['price']       ?? '');
+    $stock       = trim($_POST['stock']       ?? '');
     $categoryId  = (int)($_POST['category_id'] ?? 0);
 
     if ($name === '' || strlen($name) < 2)   $errors['name']        = 'Name is required (min 2 chars).';
@@ -59,12 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Optional image replacement
     $newImage = $bouquet['image']; // Keep existing by default
     if (!empty($_FILES['image']['name'])) {
-        $allowed    = ['image/jpeg', 'image/png', 'image/webp'];
-        $maxSize    = 2 * 1024 * 1024;
-        $finfo      = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType   = finfo_file($finfo, $_FILES['image']['tmp_name']);
+        $allowed     = ['image/jpeg', 'image/png', 'image/webp'];
+        $maxSize     = 2 * 1024 * 1024;
+        $finfo       = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType    = finfo_file($finfo, $_FILES['image']['tmp_name']);
         finfo_close($finfo);
-        $ext        = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        $ext         = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
         $allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
 
         if (!in_array($mimeType, $allowed, true) || !in_array($ext, $allowedExts, true)) {
@@ -100,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             )->execute([$name, $description, $price, (int)$stock, $categoryId, $newImage, $id]);
 
             flash('Bouquet updated successfully! ✅', 'success');
-            header('Location: /admin/bouquets.php');
+            header('Location: /bloom-aura/admin/products.php');  // ← FIXED
             exit;
 
         } catch (RuntimeException $e) {
@@ -119,8 +120,8 @@ require_once __DIR__ . '/../includes/admin_header.php';
 <!-- Breadcrumb -->
 <nav class="breadcrumb" aria-label="Breadcrumb">
     <ol>
-        <li><a href="/admin/dashboard.php">Dashboard</a></li>
-        <li><a href="/admin/bouquets.php">Bouquets</a></li>
+        <li><a href="/bloom-aura/admin/dashboard.php">Dashboard</a></li>
+        <li><a href="/bloom-aura/admin/products.php">Products</a></li>
         <li aria-current="page">Edit</li>
     </ol>
 </nav>
@@ -132,8 +133,9 @@ require_once __DIR__ . '/../includes/admin_header.php';
         <div class="alert alert-error"><?= htmlspecialchars($errors['db'], ENT_QUOTES, 'UTF-8') ?></div>
     <?php endif; ?>
 
-    <form action="/admin/edit-bouquet.php?id=<?= $id ?>" method="POST" enctype="multipart/form-data"
-          class="admin-form" novalidate>
+    <!-- FORM ACTION ← FIXED path -->
+    <form action="/bloom-aura/admin/edit-bouquet.php?id=<?= $id ?>" method="POST"
+          enctype="multipart/form-data" class="admin-form" novalidate>
         <?php csrf_field(); ?>
 
         <div class="admin-form-grid">
@@ -154,7 +156,7 @@ require_once __DIR__ . '/../includes/admin_header.php';
                         <option value="">— Select Category —</option>
                         <?php foreach ($categories as $cat): ?>
                             <option value="<?= (int)$cat['id'] ?>"
-                                <?= ($_POST['category_id'] ?? $bouquet['category_id']) == $cat['id'] ? 'selected' : '' ?>>
+                                <?= ((int)($_POST['category_id'] ?? $bouquet['category_id'])) === (int)$cat['id'] ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8') ?>
                             </option>
                         <?php endforeach; ?>
@@ -166,10 +168,12 @@ require_once __DIR__ . '/../includes/admin_header.php';
 
                 <div class="form-group">
                     <label for="description">Description</label>
-                    <textarea id="description" name="description" rows="4" maxlength="2000"><?= htmlspecialchars($_POST['description'] ?? $bouquet['description'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
+                    <textarea id="description" name="description" rows="4" maxlength="2000"><?=
+                        htmlspecialchars($_POST['description'] ?? $bouquet['description'] ?? '', ENT_QUOTES, 'UTF-8')
+                    ?></textarea>
                 </div>
 
-                <div class="form-row">
+                <div class="admin-two-col">
                     <div class="form-group <?= isset($errors['price']) ? 'has-error' : '' ?>">
                         <label for="price">Price (₹) <span class="required">*</span></label>
                         <input type="number" id="price" name="price" min="1" step="0.01" required
@@ -189,40 +193,41 @@ require_once __DIR__ . '/../includes/admin_header.php';
                     </div>
                 </div>
 
-            </div>
+            </div><!-- /.admin-form-main -->
 
             <!-- Image panel -->
             <div class="admin-form-sidebar">
                 <div class="form-group <?= isset($errors['image']) ? 'has-error' : '' ?>">
                     <label for="image">Product Image</label>
                     <p class="field-hint">Leave empty to keep the current image.</p>
+
                     <!-- Current image preview -->
                     <?php if ($bouquet['image']): ?>
-                        <img
-                            src="/uploads/bouquets/<?= htmlspecialchars($bouquet['image'], ENT_QUOTES, 'UTF-8') ?>"
-                            alt="Current image"
-                            id="image-preview"
-                            class="admin-img-preview"
-                            width="200" height="200"
-                        >
+                        <img src="/bloom-aura/uploads/bouquets/<?= htmlspecialchars($bouquet['image'], ENT_QUOTES, 'UTF-8') ?>"
+                             alt="Current image" id="image-preview"
+                             class="admin-img-preview" width="200" height="200">
                     <?php else: ?>
                         <img id="image-preview" src="" alt="" hidden class="admin-img-preview">
                     <?php endif; ?>
-                    <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp"
-                           class="file-input">
+
+                    <input type="file" id="image" name="image"
+                           accept="image/jpeg,image/png,image/webp" class="file-input">
                     <?php if (isset($errors['image'])): ?>
                         <span class="field-error"><?= htmlspecialchars($errors['image'], ENT_QUOTES, 'UTF-8') ?></span>
                     <?php endif; ?>
                 </div>
-            </div>
-        </div>
+            </div><!-- /.admin-form-sidebar -->
+
+        </div><!-- /.admin-form-grid -->
 
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">
                 <i class="fa-solid fa-floppy-disk"></i> Save Changes
             </button>
-            <a href="/admin/bouquets.php" class="btn btn-ghost">Cancel</a>
+            <!-- CANCEL link ← FIXED path -->
+            <a href="/bloom-aura/admin/products.php" class="btn btn-ghost">Cancel</a>
         </div>
+
     </form>
 </div><!-- /.page-container -->
 
@@ -233,7 +238,7 @@ document.getElementById('image').addEventListener('change', function () {
     const reader = new FileReader();
     reader.onload = e => {
         const preview = document.getElementById('image-preview');
-        preview.src = e.target.result;
+        preview.src    = e.target.result;
         preview.hidden = false;
     };
     reader.readAsDataURL(file);
