@@ -26,23 +26,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo = getPDO();
 
             /* ── TOGGLE — heart button on shop/home product cards ── */
-            if ($action === 'toggle') {
-                $check = $pdo->prepare('SELECT id FROM wishlist WHERE user_id = ? AND bouquet_id = ?');
-                $check->execute([$userId, $bouquetId]);
-                if ($check->fetch()) {
-                    $pdo->prepare('DELETE FROM wishlist WHERE user_id = ? AND bouquet_id = ?')
-                        ->execute([$userId, $bouquetId]);
-                    flash('Removed from wishlist.', 'info');
-                } else {
-                    $pdo->prepare('INSERT INTO wishlist (user_id, bouquet_id, added_at) VALUES (?, ?, NOW())')
-                        ->execute([$userId, $bouquetId]);
-                    flash('Added to wishlist! 💖', 'success');
-                }
-                /* Redirect back to referring page (shop, home, product) */
-                $ref = $_SERVER['HTTP_REFERER'] ?? '/bloom-aura/pages/shop.php';
-                header('Location: ' . $ref);
-                exit;
+        if ($action === 'toggle') {
+            $check = $pdo->prepare('SELECT id FROM wishlist WHERE user_id = ? AND bouquet_id = ?');
+            $check->execute([$userId, $bouquetId]);
+            if ($check->fetch()) {
+                $pdo->prepare('DELETE FROM wishlist WHERE user_id = ? AND bouquet_id = ?')
+                    ->execute([$userId, $bouquetId]);
+                flash('Removed from wishlist.', 'info');
+            } else {
+                $pdo->prepare('INSERT INTO wishlist (user_id, bouquet_id, added_at) VALUES (?, ?, NOW())')
+                    ->execute([$userId, $bouquetId]);
+                flash('Added to wishlist! 💖', 'success');
             }
+
+            // ✅ FIXED — validate referer is on our own host before redirecting
+            $fallback = '/bloom-aura/pages/shop.php';
+            $ref      = $_SERVER['HTTP_REFERER'] ?? '';
+
+            if ($ref !== '') {
+                $refHost = parse_url($ref, PHP_URL_HOST);
+                $ownHost = $_SERVER['HTTP_HOST']; // e.g. localhost or bloomaura.in
+
+                // Only trust the referer if it's on the same host
+                if ($refHost === $ownHost) {
+                    $safeRef = $ref;
+                } else {
+                    $safeRef = $fallback;
+                }
+            } else {
+                $safeRef = $fallback;
+            }
+
+            header('Location: ' . $safeRef);
+            exit;
+        }
 
             /* ── REMOVE — trash button on wishlist page ── */
             if ($action === 'remove') {
