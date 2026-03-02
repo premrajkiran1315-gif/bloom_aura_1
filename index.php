@@ -17,14 +17,14 @@ try {
     $pdo  = getPDO();
     $stmt = $pdo->query(
         "SELECT b.id, b.name, b.slug, b.price, b.image, b.stock,
-                c.name AS category_name, c.slug AS category_slug,
+                c.name AS category_name,
                 ROUND(COALESCE(AVG(r.rating), 0), 1) AS avg_rating,
                 COUNT(r.id) AS review_count
          FROM   bouquets b
          LEFT JOIN categories c ON c.id = b.category_id
          LEFT JOIN reviews    r ON r.bouquet_id = b.id
          WHERE  b.is_active = 1
-         GROUP  BY b.id, c.name, c.slug
+         GROUP  BY b.id, c.name
          ORDER  BY b.created_at DESC
          LIMIT  8"
     );

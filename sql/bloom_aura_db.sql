@@ -137,7 +137,7 @@ INSERT IGNORE INTO users (name, email, password_hash, role, is_active) VALUES
 (
     'Munisha Admin',
     'admin@bloomaura.in',
-    '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2y$10$/61mjvBbwp9645up1OljMOpu.zVdEeQGcVU9AdwT70n4fXogR7yVu',
     'admin',
     1
 );
