@@ -2,45 +2,161 @@
  * bloom-aura-1/assets/css/wishlist.css
  * ─────────────────────────────────────────────────────────────
  * Styles for: pages/wishlist.php
+ * Pixel-matched to bloom_aura reference UI.
  * Requires: base.css loaded first.
  * ─────────────────────────────────────────────────────────────
  */
 
 /* ═══════════════════════════════════════════════════════
-   WISHLIST GRID
+   PAGE TITLE ROW
 ═══════════════════════════════════════════════════════ */
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.75rem;
+}
+
+.page-title-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-l);
+  color: var(--color-primary);
+  font-size: .78rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  padding: .2rem .7rem;
+  border-radius: 30px;
+  letter-spacing: .02em;
+  margin-left: .25rem;
+}
+
+/* ═══════════════════════════════════════════════════════
+   WISHLIST PRODUCT GRID — 4 columns desktop
+═══════════════════════════════════════════════════════ */
+.wishlist-product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+/* Legacy grid class (keep for safety) */
 .wishlist-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1.25rem;
 }
 
-/* Wishlist Product Grid — 4 columns (like home page) */
-.wishlist-product-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+/* ═══════════════════════════════════════════════════════
+   WISHLIST CARD — saved date + action row
+═══════════════════════════════════════════════════════ */
+.wishlist-saved-date {
+  font-size: .73rem;
+  color: var(--color-text-muted);
+  margin: .2rem 0 .65rem;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+}
+.wishlist-saved-date::before {
+  content: '🗓';
+  font-size: .7rem;
 }
 
-/* Card action row (below the shared .product-card styles) */
+/* Action row: Add to Cart + Remove buttons */
+.wishlist-actions {
+  display: flex;
+  gap: .5rem;
+  margin-top: .85rem;
+  flex-wrap: wrap;
+}
+.wishlist-actions form { display: contents; }
+.wishlist-actions .btn { flex: 1; min-width: 0; justify-content: center; }
+
+/* Card action row (legacy class) */
 .wishlist-card-actions {
-  display: flex; gap: .5rem; margin-top: .75rem;
+  display: flex;
+  gap: .5rem;
+  margin-top: .75rem;
 }
 .wishlist-card-actions .btn { flex: 1; }
 
-/* Remove from wishlist button (shown on the card) */
+/* Remove button (icon-only ghost) */
 .remove-wish-btn {
-  background: none; border: none; color: #ddd;
-  font-size: 1rem; cursor: pointer; padding: .3rem;
-  border-radius: 6px; transition: color .2s, background .2s;
+  background: none;
+  border: none;
+  color: #ddd;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: .3rem;
+  border-radius: 6px;
+  transition: color .2s, background .2s;
 }
-.remove-wish-btn:hover { color: var(--color-error); background: #fef2f2; }
+.remove-wish-btn:hover {
+  color: var(--color-error);
+  background: #fef2f2;
+}
 
-/* Wishlist page header row */
+/* ═══════════════════════════════════════════════════════
+   WISHLIST PAGE HEADER ROW (legacy)
+═══════════════════════════════════════════════════════ */
 .wishlist-header {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 1.5rem; flex-wrap: wrap; gap: .75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: .75rem;
 }
 .wishlist-count {
-  font-size: .9rem; color: var(--color-text-muted);
+  font-size: .9rem;
+  color: var(--color-text-muted);
+}
+
+/* ═══════════════════════════════════════════════════════
+   EMPTY STATE OVERRIDE
+   Adds pink border + centered layout consistent with cart
+═══════════════════════════════════════════════════════ */
+.empty-state {
+  border: 1.5px solid #fce4ec;
+  box-shadow: 0 4px 20px rgba(214, 51, 132, .07);
+  max-width: 480px;
+  margin: 2rem auto;
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════ */
+
+/* 3 columns — tablets */
+@media (max-width: 1100px) {
+  .wishlist-product-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* 2 columns — large phones */
+@media (max-width: 700px) {
+  .wishlist-product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .wishlist-actions {
+    flex-direction: column;
+  }
+
+  .wishlist-actions .btn {
+    width: 100%;
+  }
+}
+
+/* 1 column — small phones */
+@media (max-width: 420px) {
+  .wishlist-product-grid,
+  .wishlist-grid {
+    grid-template-columns: 1fr;
+  }
 }
