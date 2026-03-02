@@ -12,28 +12,68 @@ $adminName = htmlspecialchars($_SESSION['admin_name'], ENT_QUOTES, 'UTF-8');
 
 try {
     $pdo = getPDO();
-    $revenue   = $pdo->query('SELECT COALESCE(SUM(total), 0) FROM orders')->fetchColumn();
-    $orders    = $pdo->query('SELECT COUNT(*) FROM orders')->fetchColumn();
-    $customers = $pdo->query('SELECT COUNT(*) FROM users WHERE role = "customer" AND is_active = 1')->fetchColumn();
-    $avgRating = $pdo->query('SELECT COALESCE(ROUND(AVG(rating), 1), 0) FROM reviews')->fetchColumn();
-    $pending   = $pdo->query('SELECT COUNT(*) FROM orders WHERE status = "pending"')->fetchColumn();
 
-    $recentOrders = $pdo->query(
+    // ── KPI aggregates — no user input, but use prepare() for consistency ──
+    $revenue = $pdo->prepare('SELECT COALESCE(SUM(total), 0) FROM orders');
+    $revenue->execute();
+    $revenue = (float) $revenue->fetchColumn();
+
+    $orders = $pdo->prepare('SELECT COUNT(*) FROM orders');
+    $orders->execute();
+    $orders = (int) $orders->fetchColumn();
+
+    $customers = $pdo->prepare(
+        'SELECT COUNT(*) FROM users WHERE role = ? AND is_active = 1'
+    );
+    $customers->execute(['customer']);
+    $customers = (int) $customers->fetchColumn();
+
+    $avgRating = $pdo->prepare(
+        'SELECT COALESCE(ROUND(AVG(rating), 1), 0) FROM reviews'
+    );
+    $avgRating->execute();
+    $avgRating = (float) $avgRating->fetchColumn();
+
+    $pending = $pdo->prepare(
+        'SELECT COUNT(*) FROM orders WHERE status = ?'
+    );
+    $pending->execute(['pending']);
+    $pending = (int) $pending->fetchColumn();
+
+    // ── Recent orders — LIMIT already present ✅ ──
+    $stmt = $pdo->prepare(
         'SELECT o.id, u.name AS customer, o.total, o.status, o.created_at
-         FROM orders o JOIN users u ON o.user_id = u.id
-         ORDER BY o.created_at DESC LIMIT 5'
-    )->fetchAll();
+         FROM orders o
+         JOIN users u ON o.user_id = u.id
+         ORDER BY o.created_at DESC
+         LIMIT 5'
+    );
+    $stmt->execute();
+    $recentOrders = $stmt->fetchAll();
 
-    $topProducts = $pdo->query(
-        'SELECT b.name, SUM(oi.quantity) AS units_sold, SUM(oi.quantity * oi.unit_price) AS revenue
-         FROM order_items oi JOIN bouquets b ON oi.bouquet_id = b.id
-         GROUP BY oi.bouquet_id ORDER BY units_sold DESC LIMIT 5'
-    )->fetchAll();
+    // ── Top products — LIMIT already present ✅ ──
+    $stmt = $pdo->prepare(
+        'SELECT b.name,
+                SUM(oi.quantity) AS units_sold,
+                SUM(oi.quantity * oi.unit_price) AS revenue
+         FROM order_items oi
+         JOIN bouquets b ON oi.bouquet_id = b.id
+         GROUP BY oi.bouquet_id, b.name
+         ORDER BY units_sold DESC
+         LIMIT 5'
+    );
+    $stmt->execute();
+    $topProducts = $stmt->fetchAll();
 
 } catch (RuntimeException $e) {
-    $error = 'Unable to load dashboard data.';
-    $revenue = $orders = $customers = $avgRating = $pending = 0;
-    $recentOrders = $topProducts = [];
+    $error     = 'Unable to load dashboard data.';
+    $revenue   = 0.0;
+    $orders    = 0;
+    $customers = 0;
+    $avgRating = 0.0;
+    $pending   = 0;
+    $recentOrders = [];
+    $topProducts  = [];
 }
 ?>
 <!DOCTYPE html>
