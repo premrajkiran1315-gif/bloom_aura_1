@@ -146,7 +146,7 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
     <?php else: ?>
-        <div class="product-grid">
+        <div class="home-arrivals-grid">
             <?php foreach ($featured as $b):
                 $isWishlisted = in_array((int)$b['id'], $wishlistIds, true);
                 $inStock      = (int)$b['stock'] > 0;
