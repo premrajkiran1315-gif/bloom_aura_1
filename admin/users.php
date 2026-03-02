@@ -11,10 +11,6 @@ require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/flash.php';
 require_once __DIR__ . '/../includes/admin_auth_check.php';
 
-if (empty($_SESSION['admin_id']) || ($_SESSION['admin_role'] ?? '') !== 'admin') {
-    header('Location: /bloom-aura/admin/login.php');
-    exit;
-}
 
 /* ── Handle activate / deactivate ────────────────────────────────────────── */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggle_active') {
