@@ -71,26 +71,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors['image'] = 'Please upload a bouquet image.';
     }
 
-    // Generate unique slug from name
-    if (empty($errors['name'])) {
-        $slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $name));
-        $slug = trim($slug, '-');
-    }
-
     if (empty($errors)) {
         try {
             $pdo = getPDO();
 
-            // Check unique slug
-            $slugCheck = $pdo->prepare('SELECT id FROM bouquets WHERE slug = ?');
-            $slugCheck->execute([$slug]);
-            if ($slugCheck->fetch()) {
-                $slug .= '-' . time(); // Make unique by appending timestamp
-            }
+            // ── Step 1: Resolve a guaranteed-unique slug BEFORE touching the filesystem ──
+            $baseSlug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $name));
+            $baseSlug = trim($baseSlug, '-');
+            $slug     = $baseSlug;
 
-            // Move uploaded file
-            if (!move_uploaded_file($_FILES['image']['tmp_name'], __DIR__ . '/../uploads/bouquets/' . $imageName)) {
-                throw new RuntimeException('File upload failed.');
+            // Keep trying until we find a slug not in the DB
+            $attempt = 0;
+            do {
+                $slugCheck = $pdo->prepare('SELECT id FROM bouquets WHERE slug = ? LIMIT 1');
+                $slugCheck->execute([$slug]);
+                if ($slugCheck->fetch()) {
+                    // Collision — append random suffix, not time() which repeats in same second
+                    $slug = $baseSlug . '-' . bin2hex(random_bytes(3));
+                }
+                $attempt++;
+            } while ($slugCheck->rowCount() > 0 && $attempt < 10);
+
+            // ── Step 2: INSERT the row first — slug UNIQUE constraint is the final guard ──
+            $uploadDir = __DIR__ . '/../uploads/bouquets/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
             }
 
             $pdo->prepare(
@@ -98,16 +103,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                  VALUES (?, ?, ?, ?, ?, ?, ?, NOW())"
             )->execute([$name, $slug, $description, $price, (int)$stock, $categoryId, $imageName]);
 
+            // ── Step 3: Only move file to disk AFTER the DB row is confirmed ──
+            // If move fails, we can safely delete the DB row — no orphaned file.
+            if (!move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $imageName)) {
+                // Roll back the DB insert since the image didn't land
+                $pdo->prepare('DELETE FROM bouquets WHERE slug = ?')->execute([$slug]);
+                throw new RuntimeException('Image could not be saved. Please try again.');
+            }
+
             flash('Bouquet "' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '" added successfully! 🌸', 'success');
-            header('Location: /bloom-aura/admin/products.php');  // ← FIXED path
+            header('Location: /bloom-aura/admin/products.php');
             exit;
 
         } catch (RuntimeException $e) {
-            // Clean up uploaded file on DB error
-            if ($imageName && file_exists(__DIR__ . '/../uploads/bouquets/' . $imageName)) {
-                @unlink(__DIR__ . '/../uploads/bouquets/' . $imageName);
-            }
-            $errors['db'] = 'Could not save bouquet. Please try again.';
+            // File was never moved (or was moved then DB-deleted), so no cleanup needed
+            $errors['db'] = $e->getMessage() === 'Image could not be saved. Please try again.'
+                ? $e->getMessage()
+                : 'Could not save bouquet. Please try again.';
         }
     }
 }
