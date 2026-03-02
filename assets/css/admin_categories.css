@@ -1,0 +1,500 @@
+/**
+ * bloom-aura/assets/css/admin_categories.css
+ * ─────────────────────────────────────────────────────────────
+ * Categories page — pixel-matched to bloom_aura reference HTML.
+ * Requires admin.css to be loaded first (tokens, layout, sidebar,
+ * topbar, alerts, buttons, forms are inherited from there).
+ *
+ * Contains:
+ *   • Two-column cat-layout (form aside + grid section)
+ *   • cat-form-card  — Add/Edit panel
+ *   • cat-grid       — auto-fill category cards
+ *   • cat-card       — individual dark card with emoji, badges, actions
+ *   • cat-empty      — empty state
+ *   • Responsive breakpoints
+ * ─────────────────────────────────────────────────────────────
+ */
+
+/* ══════════════════════════════════════════════════════
+   TWO-COLUMN PAGE LAYOUT
+   Left: form (fixed width)   Right: category grid (flex 1)
+══════════════════════════════════════════════════════ */
+.cat-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* ══════════════════════════════════════════════════════
+   FORM PANEL (left column)
+══════════════════════════════════════════════════════ */
+.cat-form-panel {
+  position: sticky;
+  top: 20px;
+}
+
+.cat-form-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 18px;
+  padding: 24px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Pink top accent bar — matches reference adm-kpi style */
+.cat-form-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #d63384, #ff4d94);
+}
+
+/* Form header row */
+.cat-form-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.cat-form-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.cat-form-header h3 {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* ── Form fields ── */
+.cat-field {
+  margin-bottom: 16px;
+}
+
+.cat-field label {
+  display: block;
+  font-size: .78rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin-bottom: 7px;
+}
+
+.cat-required {
+  color: var(--adm-pink);
+  font-size: .9em;
+}
+
+.cat-optional {
+  color: var(--adm-text-faint);
+  font-weight: 400;
+  font-size: .85em;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.cat-field input[type="text"],
+.cat-field textarea {
+  width: 100%;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #fff;
+  font-family: var(--font-admin);
+  font-size: .88rem;
+  outline: none;
+  transition: border-color .2s, background .2s;
+  resize: vertical;
+}
+
+.cat-field input[type="text"]::placeholder,
+.cat-field textarea::placeholder {
+  color: rgba(255,255,255,.2);
+}
+
+.cat-field input[type="text"]:focus,
+.cat-field textarea:focus {
+  border-color: var(--adm-pink);
+  background: rgba(214,51,132,.06);
+}
+
+/* Error state */
+.cat-field.has-error input[type="text"],
+.cat-field.has-error textarea {
+  border-color: #ef4444;
+}
+
+.cat-field-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .75rem;
+  color: #fca5a5;
+  margin-top: 5px;
+}
+
+/* ── Form action buttons ── */
+.cat-form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.cat-btn-submit {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 18px;
+  background: linear-gradient(135deg, #d63384, #ff4d94);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--font-admin);
+  font-size: .88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity .2s, transform .15s;
+}
+
+.cat-btn-submit:hover {
+  opacity: .9;
+  transform: translateY(-1px);
+}
+
+.cat-btn-submit:active {
+  transform: translateY(0);
+}
+
+.cat-btn-cancel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 16px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 10px;
+  color: rgba(255,255,255,.55);
+  font-family: var(--font-admin);
+  font-size: .88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background .2s, color .2s;
+  white-space: nowrap;
+}
+
+.cat-btn-cancel:hover {
+  background: rgba(255,255,255,.1);
+  color: #fff;
+  text-decoration: none;
+}
+
+/* ── Form hint ── */
+.cat-form-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: .72rem;
+  color: var(--adm-text-faint);
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--adm-border);
+  line-height: 1.5;
+}
+
+.cat-form-hint i {
+  color: var(--adm-pink);
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════════
+   CATEGORY GRID (right column)
+══════════════════════════════════════════════════════ */
+.cat-grid-panel {
+  min-width: 0;
+}
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+/* ══════════════════════════════════════════════════════
+   CATEGORY CARD
+   Matches adm-inv-item style from reference HTML.
+══════════════════════════════════════════════════════ */
+.cat-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 16px;
+  padding: 20px 18px 16px;
+  position: relative;
+  transition: transform .2s, border-color .2s, box-shadow .2s;
+  animation: catCardIn .3s ease both;
+}
+
+@keyframes catCardIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cat-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(214,51,132,.3);
+  box-shadow: 0 8px 28px rgba(214,51,132,.12);
+}
+
+/* Currently-editing highlight */
+.cat-card--editing {
+  border-color: #d63384;
+  box-shadow: 0 0 0 2px rgba(214,51,132,.25);
+}
+
+/* Emoji */
+.cat-card-emoji {
+  font-size: 2.2rem;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+/* Name */
+.cat-card-name {
+  color: #fff;
+  font-size: .92rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Slug */
+.cat-card-slug {
+  margin-bottom: 10px;
+}
+
+.cat-card-slug code {
+  font-size: .68rem;
+  color: var(--adm-text-faint);
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 5px;
+  padding: 1px 6px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Product count badge */
+.cat-card-count {
+  margin-bottom: 10px;
+}
+
+.cat-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .68rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+
+.cat-count-badge--has {
+  background: rgba(16,185,129,.15);
+  color: #6ee7b7;
+}
+
+.cat-count-badge--empty {
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.3);
+}
+
+/* Optional short description */
+.cat-card-desc {
+  font-size: .75rem;
+  color: var(--adm-text-dim);
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+
+/* ── Action buttons row ── */
+.cat-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  flex-wrap: wrap;
+}
+
+/* Edit button */
+.cat-action-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 13px;
+  background: rgba(99,102,241,.15);
+  border: 1px solid rgba(99,102,241,.3);
+  border-radius: 8px;
+  color: #a5b4fc;
+  font-size: .73rem;
+  font-weight: 600;
+  text-decoration: none;
+  font-family: var(--font-admin);
+  transition: background .2s, border-color .2s, color .2s;
+  cursor: pointer;
+}
+
+.cat-action-edit:hover {
+  background: rgba(99,102,241,.28);
+  border-color: #a5b4fc;
+  color: #fff;
+  text-decoration: none;
+}
+
+/* Delete button */
+.cat-card-actions form {
+  margin: 0;
+  padding: 0;
+}
+
+.cat-action-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 13px;
+  background: rgba(239,68,68,.12);
+  border: 1px solid rgba(239,68,68,.25);
+  border-radius: 8px;
+  color: #fca5a5;
+  font-size: .73rem;
+  font-weight: 600;
+  font-family: var(--font-admin);
+  cursor: pointer;
+  transition: background .2s, border-color .2s, color .2s;
+}
+
+.cat-action-delete:hover {
+  background: rgba(239,68,68,.25);
+  border-color: #fca5a5;
+  color: #fff;
+}
+
+/* Locked (has products — cannot delete) */
+.cat-action-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 8px;
+  color: var(--adm-text-faint);
+  font-size: .73rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  user-select: none;
+}
+
+/* "Editing" pill badge shown on active card */
+.cat-card-editing-pill {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: linear-gradient(135deg, #d63384, #ff4d94);
+  color: #fff;
+  font-size: .6rem;
+  font-weight: 800;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+/* ══════════════════════════════════════════════════════
+   EMPTY STATE
+══════════════════════════════════════════════════════ */
+.cat-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 64px 32px;
+  background: var(--adm-surface);
+  border: 1.5px dashed rgba(255,255,255,.1);
+  border-radius: 18px;
+}
+
+.cat-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.cat-empty h4 {
+  color: rgba(255,255,255,.5);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.cat-empty p {
+  color: var(--adm-text-faint);
+  font-size: .82rem;
+  margin: 0;
+  max-width: 280px;
+  line-height: 1.6;
+}
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════════ */
+
+/* Medium screens — stack form above grid */
+@media (max-width: 1024px) {
+  .cat-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cat-form-panel {
+    position: static;
+  }
+
+  .cat-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+}
+
+/* Small screens */
+@media (max-width: 600px) {
+  .cat-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cat-form-card {
+    padding: 18px;
+  }
+
+  .cat-card {
+    padding: 16px 14px 12px;
+  }
+}
+
+/* Very small */
+@media (max-width: 380px) {
+  .cat-grid {
+    grid-template-columns: 1fr;
+  }
+}
