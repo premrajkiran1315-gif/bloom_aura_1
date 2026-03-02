@@ -1,0 +1,469 @@
+/**
+ * bloom-aura/assets/css/admin_reviews.css
+ * ─────────────────────────────────────────────────────────────
+ * Reviews page — pixel-matched to bloom_aura reference HTML.
+ * Requires admin.css to be loaded first (tokens, layout, sidebar,
+ * topbar, alerts, adm-page-header, adm-empty inherited).
+ *
+ * Contains (all self-contained — no dependency on other page CSS):
+ *   • adm-review-summary  — big rating + rating bars panel
+ *   • adm-big-rating      — large avg score block
+ *   • adm-rating-bars     — 5→1 star distribution bars
+ *   • rev-toolbar         — filter tabs row
+ *   • adm-filter-tabs     — pill filter buttons
+ *   • adm-review-cards    — list of review cards
+ *   • adm-review-card     — individual card
+ *   • adm-review-top      — reviewer avatar + name + stars
+ *   • adm-review-text     — italic quoted review body
+ *   • adm-review-chip     — product + rating chips
+ *   • rev-delete-btn      — trash delete button
+ *   • rev-empty           — empty / no-results state
+ *   • adm-pagination      — page nav
+ *   • Responsive
+ * ─────────────────────────────────────────────────────────────
+ */
+
+/* ══════════════════════════════════════════════════════
+   RATING SUMMARY PANEL
+   Reference: .adm-review-summary
+══════════════════════════════════════════════════════ */
+.adm-review-summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 24px;
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+/* ── Big average score — reference: .adm-big-rating ── */
+.adm-big-rating {
+  text-align: center;
+  padding-right: 24px;
+  border-right: 1px solid rgba(255,255,255,.08);
+  min-width: 110px;
+}
+
+.adm-big-rating .num {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+
+.adm-big-rating .stars {
+  color: #fcd34d;
+  font-size: 1.1rem;
+  margin: 6px 0;
+  letter-spacing: 1px;
+}
+
+.adm-big-rating .count {
+  color: rgba(255,255,255,.3);
+  font-size: .75rem;
+}
+
+/* ── Rating distribution bars — reference: .adm-rating-bars ── */
+.adm-rating-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Row — made <a> so clicking filters. Reference: .adm-rb-row */
+.adm-rb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .78rem;
+  text-decoration: none;
+  border-radius: 6px;
+  padding: 2px 4px;
+  transition: background .15s;
+}
+
+.adm-rb-row:hover {
+  background: rgba(255,255,255,.05);
+  text-decoration: none;
+}
+
+.adm-rb-row--active {
+  background: rgba(214,51,132,.1);
+}
+
+/* Star label — reference: .adm-rb-lbl */
+.adm-rb-lbl {
+  color: rgba(255,255,255,.5);
+  width: 30px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Progress track — reference: .adm-rb-track */
+.adm-rb-track {
+  flex: 1;
+  height: 7px;
+  background: rgba(255,255,255,.07);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* Fill bar — reference: .adm-rb-fill */
+.adm-rb-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f59e0b, #fcd34d);
+  transition: width .5s ease;
+}
+
+/* Count — reference: .adm-rb-count */
+.adm-rb-count {
+  color: rgba(255,255,255,.35);
+  width: 25px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════════
+   FILTER TOOLBAR
+   (Self-contained — do NOT rely on admin_orders.css)
+══════════════════════════════════════════════════════ */
+.rev-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.adm-filter-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.adm-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 16px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 30px;
+  color: rgba(255,255,255,.5);
+  font-family: var(--font-admin);
+  font-size: .75rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .2s, border-color .2s, color .2s;
+  letter-spacing: .2px;
+}
+
+.adm-filter-btn:hover,
+.adm-filter-btn.active {
+  background: rgba(214,51,132,.2);
+  border-color: #d63384;
+  color: #ff79b0;
+  text-decoration: none;
+}
+
+/* Active star filter — gold tint instead of pink */
+.adm-filter-btn.active {
+  background: rgba(245,158,11,.15);
+  border-color: #f59e0b;
+  color: #fcd34d;
+}
+
+.rev-filter-count {
+  font-size: .78rem;
+  color: var(--adm-text-faint);
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════════════════
+   REVIEW CARDS LIST — reference: .adm-review-cards
+══════════════════════════════════════════════════════ */
+.adm-review-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+/* ══════════════════════════════════════════════════════
+   INDIVIDUAL REVIEW CARD — reference: .adm-review-card
+══════════════════════════════════════════════════════ */
+.adm-review-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  transition: border-color .2s, transform .2s;
+  animation: revCardIn .3s ease both;
+}
+
+@keyframes revCardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.adm-review-card:hover {
+  border-color: rgba(214,51,132,.2);
+  transform: translateY(-2px);
+}
+
+/* ── Top row: reviewer + date | stars — reference: .adm-review-top ── */
+.adm-review-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.rev-reviewer-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Avatar circle (gradient set inline) */
+.rev-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .95rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+/* Reviewer name — reference: .adm-reviewer */
+.adm-reviewer {
+  color: #fff;
+  font-weight: 600;
+  font-size: .88rem;
+}
+
+/* Review date — reference: .adm-review-date */
+.adm-review-date {
+  color: rgba(255,255,255,.25);
+  font-size: .72rem;
+  margin-top: 2px;
+}
+
+/* Star display — reference: .adm-review-stars */
+.adm-review-stars {
+  color: #fcd34d;
+  font-size: .9rem;
+  letter-spacing: 1px;
+}
+
+/* Review body text — reference: .adm-review-text */
+.adm-review-text {
+  color: rgba(255,255,255,.6);
+  font-size: .83rem;
+  line-height: 1.65;
+  font-style: italic;
+  margin-bottom: 14px;
+}
+
+/* ── Card footer: chips + delete ── */
+.rev-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rev-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Product / rating chip — reference: .adm-review-chip */
+.adm-review-chip {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(214,51,132,.12);
+  color: #ff79b0;
+  font-size: .65rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background .2s;
+}
+
+.adm-review-chip:hover {
+  background: rgba(214,51,132,.22);
+  text-decoration: none;
+  color: #ff79b0;
+}
+
+/* Rating-specific chip colours */
+.rev-rating-chip.rev-chip-5 { background: rgba(16,185,129,.15);  color: #6ee7b7; }
+.rev-rating-chip.rev-chip-4 { background: rgba(16,185,129,.10);  color: #6ee7b7; }
+.rev-rating-chip.rev-chip-3 { background: rgba(245,158,11,.15);  color: #fcd34d; }
+.rev-rating-chip.rev-chip-2 { background: rgba(239,68,68,.12);   color: #fca5a5; }
+.rev-rating-chip.rev-chip-1 { background: rgba(239,68,68,.18);   color: #fca5a5; }
+
+/* Delete button */
+.rev-card-footer form { margin: 0; padding: 0; }
+
+.rev-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(239,68,68,.1);
+  border: 1px solid rgba(239,68,68,.2);
+  border-radius: 8px;
+  color: #fca5a5;
+  font-size: .8rem;
+  cursor: pointer;
+  transition: background .2s, border-color .2s, color .2s;
+  flex-shrink: 0;
+}
+
+.rev-delete-btn:hover {
+  background: rgba(239,68,68,.25);
+  border-color: rgba(239,68,68,.5);
+  color: #fff;
+}
+
+/* ══════════════════════════════════════════════════════
+   EMPTY STATE
+══════════════════════════════════════════════════════ */
+.rev-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 64px 32px;
+  background: var(--adm-surface);
+  border: 1.5px dashed rgba(255,255,255,.1);
+  border-radius: 18px;
+}
+
+.rev-empty--inline {
+  padding: 40px 24px;
+  border-radius: 14px;
+}
+
+.rev-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.rev-empty h4 {
+  color: rgba(255,255,255,.5);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.rev-empty p {
+  color: var(--adm-text-faint);
+  font-size: .82rem;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.rev-empty a {
+  color: var(--adm-pink-hover);
+  text-decoration: none;
+}
+.rev-empty a:hover { text-decoration: underline; }
+
+/* ══════════════════════════════════════════════════════
+   PAGINATION
+══════════════════════════════════════════════════════ */
+.adm-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.adm-page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 8px;
+  color: rgba(255,255,255,.5);
+  font-size: .82rem;
+  font-weight: 600;
+  font-family: var(--font-admin);
+  text-decoration: none;
+  transition: background .2s, border-color .2s, color .2s;
+}
+
+.adm-page-link:hover {
+  background: rgba(214,51,132,.15);
+  border-color: rgba(214,51,132,.3);
+  color: var(--adm-pink-hover);
+  text-decoration: none;
+}
+
+.adm-page-link.active {
+  background: linear-gradient(135deg, #d63384, #ff4d94);
+  border-color: transparent;
+  color: #fff;
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .adm-review-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-big-rating {
+    padding-right: 0;
+    border-right: none;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    padding-bottom: 16px;
+  }
+
+  .rev-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .adm-filter-tabs {
+    width: 100%;
+  }
+
+  .rev-card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .adm-review-card  { padding: 14px 16px; }
+  .adm-filter-btn   { padding: 5px 12px; font-size: .72rem; }
+}
