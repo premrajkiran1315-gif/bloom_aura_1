@@ -11,11 +11,6 @@ require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/flash.php';
 require_once __DIR__ . '/../includes/admin_auth_check.php';
 
-// ── Admin guard ───────────────────────────────────────────────────────────────
-if (empty($_SESSION['admin_id']) || ($_SESSION['admin_role'] ?? '') !== 'admin') {
-    header('Location: /bloom-aura/admin/login.php');  // ← FIXED
-    exit;
-}
 
 $id = (int)($_GET['id'] ?? 0);
 if ($id <= 0) {
