@@ -74,6 +74,10 @@ $safeCssSlug = in_array($pageCss ?? '', $allowedPageCss, true) ? ($pageCss ?? ''
     <!-- CSRF token for JS AJAX cart requests -->
     <meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
 
+    <!-- ✅ ADD THESE 2 LINES — Chatbot user awareness -->
+    <meta name="user-name"     content="<?= htmlspecialchars($_SESSION['user_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+    <meta name="user-loggedin" content="<?= !empty($_SESSION['user_id']) ? '1' : '0' ?>">
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

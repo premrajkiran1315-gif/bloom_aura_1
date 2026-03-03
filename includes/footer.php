@@ -10,7 +10,7 @@
 <footer class="site-footer" role="contentinfo">
 
     <div class="footer-inner">
-     <link rel="stylesheet" href="/bloom-aura/assets/css/chatbot.css">
+
         <!-- Brand column -->
         <div class="footer-brand">
             <a href="/bloom-aura/" class="footer-logo">
@@ -94,7 +94,7 @@
 <!-- ── Back to top + mobile nav JS ── -->
 <script>
 (function () {
-    // Flash auto-dismiss (backup — header.php also does this)
+    // Flash auto-dismiss
     document.querySelectorAll('.flash-container .alert').forEach(function (el) {
         setTimeout(function () {
             el.style.transition = 'opacity .4s, transform .4s';
@@ -105,8 +105,10 @@
     });
 })();
 </script>
-<!-- 🌸 Bloom Aura Chatbot — fixed bottom-right, all pages -->
-    <script src="/bloom-aura/assets/js/chatbot.js" defer></script>
-</body>
+
+<!-- ✅ CHATBOT — CSS loads here, JS loads after all page content -->
+<link  rel="stylesheet" href="/bloom-aura/assets/css/chatbot.css">
+<script src="/bloom-aura/assets/js/chatbot.js" defer></script>
+
 </body>
 </html>
