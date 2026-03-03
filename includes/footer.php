@@ -10,7 +10,7 @@
 <footer class="site-footer" role="contentinfo">
 
     <div class="footer-inner">
-
+     <link rel="stylesheet" href="/bloom-aura/assets/css/chatbot.css">
         <!-- Brand column -->
         <div class="footer-brand">
             <a href="/bloom-aura/" class="footer-logo">
@@ -105,6 +105,8 @@
     });
 })();
 </script>
-
+<!-- 🌸 Bloom Aura Chatbot — fixed bottom-right, all pages -->
+    <script src="/bloom-aura/assets/js/chatbot.js" defer></script>
+</body>
 </body>
 </html>
