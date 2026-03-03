@@ -1041,11 +1041,22 @@
 
     /* Close on outside click */
     document.addEventListener('click', function (e) {
-      var widget = document.getElementById('ba-chat-widget');
-      if (state.isOpen && widget && !widget.contains(e.target)) {
+    var widget = document.getElementById('ba-chat-widget');
+    if (!state.isOpen || !widget) return;
+
+    // Use composedPath() to check the original target before DOM removal
+    var path = e.composedPath ? e.composedPath() : [];
+    var clickedInside = path.indexOf(widget) !== -1;
+
+    // Fallback for older browsers — check closest
+    if (!clickedInside && e.target && typeof e.target.closest === 'function') {
+        clickedInside = !!e.target.closest('#ba-chat-widget');
+    }
+
+    if (!clickedInside) {
         toggleChat(false);
-      }
-    });
+    }
+}, true); // ← capture phase — fires BEFORE the element is removed from DOM
 
     /* Escape key closes */
     document.addEventListener('keydown', function (e) {
