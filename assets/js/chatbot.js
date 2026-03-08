@@ -518,7 +518,30 @@
         topic   : 'price_filter'
       };
     }
-
+/* ── 4a. Colour search — must check before KB loop ── */
+    var colours = {
+      'white'   : 'white', 'black': 'black', 'purple': 'purple',
+      'yellow'  : 'yellow', 'orange': 'orange', 'lavender': 'lavender',
+      'blue'    : 'blue', 'mixed': 'mixed', 'pink': 'pink', 'red': 'red'
+    };
+    var foundColour = null;
+    Object.keys(colours).forEach(function (c) {
+      if (!foundColour && lower === c) { foundColour = c; }
+    });
+    if (foundColour) {
+      var colourLinks = {
+        'pink'  : 'pink',  'red'   : 'red',   'white' : 'white',
+        'black' : 'black', 'purple': 'purple', 'yellow': 'yellow',
+        'orange': 'orange','blue'  : 'blue',   'mixed' : 'mixed',
+        'lavender': 'lavender'
+      };
+      return {
+        text    : '🌸 Looking for <strong>' + foundColour + '</strong> bouquets? '
+                + '<a href="/bloom-aura/pages/shop.php?q=' + colourLinks[foundColour] + '">Browse ' + foundColour + ' flowers →</a>',
+        buttons : ['🌹 Red', '🌸 Pink', '🤍 White', '💜 Purple'],
+        topic   : 'colour_search'
+      };
+    }
     /* ── 4. Help keyword — show all topics ── */
     if (lower === 'help' || lower === 'options' || lower === 'what can you do') {
       return {
