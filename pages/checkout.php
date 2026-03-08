@@ -266,10 +266,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ── Payment options displayed in the form ─────────────────────────────────────
 $paymentOptions = [
-    'cod'  => ['label' => 'Cash on Delivery', 'icon' => '💵'],
-    'upi'  => ['label' => 'UPI (Simulated)',   'icon' => '📱'],
-    'card' => ['label' => 'Card (Simulated)',  'icon' => '💳'],
-];
+    'cod'  => ['label' => 'Cash on Delivery', 'sub' => 'Pay at door'],
+    'upi'  => ['label' => 'UPI',              'sub' => 'GPay · PhonePe'],
+    'card' => ['label' => 'Card',             'sub' => 'Debit · Credit'],
+];;
 
 $pageTitle = 'Checkout — Bloom Aura';
 $pageCss   = 'checkout';
@@ -409,42 +409,87 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
 
                 <!-- Payment Method -->
-                <div class="form-group <?= isset($errors['payment']) ? 'has-error' : '' ?>">
-                    <fieldset>
-                        <legend>Payment Method <span class="required" aria-hidden="true">*</span></legend>
-                        <div class="payment-options">
-                            <?php foreach ($paymentOptions as $value => $opt): ?>
-                                <label class="payment-option <?= ($old['payment'] ?? '') === $value ? 'selected' : '' ?>">
-                                    <input
-                                        type="radio"
-                                        name="payment"
-                                        value="<?= htmlspecialchars($value, ENT_QUOTES, 'UTF-8') ?>"
-                                        <?= ($old['payment'] ?? '') === $value ? 'checked' : '' ?>
-                                        required
-                                    >
-                                    <span class="payment-icon"><?= $opt['icon'] ?></span>
-                                    <span class="payment-label"><?= htmlspecialchars($opt['label'], ENT_QUOTES, 'UTF-8') ?></span>
-                                </label>
-                            <?php endforeach; ?>
-                        </div>
-                        <?php if (isset($errors['payment'])): ?>
-                            <span class="field-error" role="alert">
-                                <?= htmlspecialchars($errors['payment'], ENT_QUOTES, 'UTF-8') ?>
-                            </span>
-                        <?php endif; ?>
-                    </fieldset>
-                </div>
+               <!-- Payment Method -->
+<div class="form-group <?= isset($errors['payment']) ? 'has-error' : '' ?>">
+    <fieldset class="payment-fieldset">
+        <legend class="payment-legend-title">Payment Method <span class="required" aria-hidden="true">*</span></legend>
+        <div class="payment-options">
 
-                <!-- Secure badges -->
-                <div class="secure-badges">
-                    <span class="secure-badge">🔒 SSL Secured</span>
-                    <span class="secure-badge">✅ Safe Checkout</span>
-                    <span class="secure-badge">🌸 Bloom Aura</span>
-                </div>
+            <label class="payment-option <?= ($old['payment'] ?? '') === 'cod' ? 'selected' : '' ?>" data-method="cod">
+                <input type="radio" name="payment" value="cod" <?= ($old['payment'] ?? '') === 'cod' ? 'checked' : '' ?> required>
+                <span class="payment-card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="6" width="20" height="12" rx="2.5"/>
+                        <circle cx="12" cy="12" r="2.5"/>
+                        <path d="M6 12h.01M18 12h.01"/>
+                    </svg>
+                </span>
+                <span class="payment-label">Cash on Delivery</span>
+                <span class="payment-sublabel">Pay at door</span>
+            </label>
 
-                <button type="submit" class="btn-place-order">
-                    Place Order 🌸
-                </button>
+            <label class="payment-option <?= ($old['payment'] ?? '') === 'upi' ? 'selected' : '' ?>" data-method="upi">
+                <input type="radio" name="payment" value="upi" <?= ($old['payment'] ?? '') === 'upi' ? 'checked' : '' ?>>
+                <span class="payment-card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2.5"/>
+                        <circle cx="12" cy="17" r="1"/>
+                        <path d="M9 6h6"/>
+                    </svg>
+                </span>
+                <span class="payment-label">UPI</span>
+                <span class="payment-sublabel">GPay · PhonePe</span>
+            </label>
+
+            <label class="payment-option <?= ($old['payment'] ?? '') === 'card' ? 'selected' : '' ?>" data-method="card">
+                <input type="radio" name="payment" value="card" <?= ($old['payment'] ?? '') === 'card' ? 'checked' : '' ?>>
+                <span class="payment-card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="5" width="20" height="14" rx="2.5"/>
+                        <path d="M2 10h20"/>
+                        <path d="M6 15h4"/>
+                    </svg>
+                </span>
+                <span class="payment-label">Card</span>
+                <span class="payment-sublabel">Debit · Credit</span>
+            </label>
+
+        </div>
+        <?php if (isset($errors['payment'])): ?>
+            <span class="field-error" role="alert"><?= htmlspecialchars($errors['payment'], ENT_QUOTES, 'UTF-8') ?></span>
+        <?php endif; ?>
+    </fieldset>
+</div>
+
+<!-- Trust bar -->
+<div class="secure-badges">
+    <span class="secure-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#16a34a" width="13" height="13">
+            <path fill-rule="evenodd" d="M9.661 2.237a.531.531 0 01.678 0 11.947 11.947 0 007.078 2.749.5.5 0 01.479.425c.069.52.104 1.05.104 1.589 0 5.162-3.26 9.563-7.834 11.256a.48.48 0 01-.332 0C5.26 16.563 2 12.162 2 7c0-.54.035-1.069.104-1.589a.5.5 0 01.48-.425 11.947 11.947 0 007.077-2.749zm4.196 5.954a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/>
+        </svg>
+        SSL Secured
+    </span>
+    <span class="secure-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#d63384" width="13" height="13">
+            <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/>
+        </svg>
+        Safe Checkout
+    </span>
+    <span class="secure-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#f59e0b" width="13" height="13">
+            <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.83-4.4z" clip-rule="evenodd"/>
+        </svg>
+        Bloom Aura
+    </span>
+</div>
+
+<button type="submit" class="btn-place-order">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17">
+        <path d="M22 2L11 13"/>
+        <path d="M22 2L15 22 11 13 2 9l20-7z"/>
+    </svg>
+    Place Order
+</button>
             </form>
         </section><!-- /.checkout-form-wrap -->
 

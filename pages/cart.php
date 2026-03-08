@@ -320,14 +320,7 @@ require_once __DIR__ . '/../includes/header.php';
                     </a>
                 <?php endif; ?>
 
-                <!-- Payment badges -->
-                <div class="pay-badges">
-                    <span class="pay-badge">💳 Cards</span>
-                    <span class="pay-badge">📱 UPI</span>
-                    <span class="pay-badge">💵 COD</span>
-                    <span class="pay-badge">🔒 Secure</span>
-                </div>
-
+               
             </div><!-- /.summary-body -->
         </aside>
 

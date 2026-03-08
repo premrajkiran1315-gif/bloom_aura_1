@@ -189,7 +189,27 @@
       topic: 'sunflowers',
       patterns: ['sunflower', 'sunflowers'],
       response: '🌻 Sunflowers bring such joy! We have beautiful sunflower bunches starting at <strong>₹399</strong>. Great for cheering someone up! <a href="/bloom-aura/pages/shop.php?q=sunflower">View sunflowers →</a>',
-      followUps: ['🎂 For a birthday', '🌸 Get well soon', '💐 Mixed bouquets', '🎁 Add chocolates?']
+      followUps: ['🎂 For a birthday', '🌸 Get well soon', '💐 Mixed bouquets', '🎁 Add chocolates?']{
+      topic: 'colour_search',
+      patterns: ['white', 'black', 'purple', 'yellow', 'orange', 'lavender', 'blue', 'mixed'],
+      response: function () {
+        return '🌈 We have bouquets in all colours! <a href="/bloom-aura/pages/shop.php">Browse the full collection →</a>';
+      },
+      followUps: ['🌹 Red bouquets', '🌸 Pink bouquets', '🤍 White flowers', '💜 Purple blooms']
+    },
+    {
+      topic: 'pink_flowers',
+      patterns: ['pink'],
+      response: '🌸 Pink is our most popular colour! Check out our Pink Tulip Bouquets and Pink Rose arrangements. <a href="/bloom-aura/pages/shop.php?q=pink">See all pink bouquets →</a>',
+      followUps: ['🌷 Pink tulips', '🌹 Pink roses', '🎂 For birthday?', '💰 Check prices']
+    },
+    {
+      topic: 'red_flowers',
+      patterns: ['red'],
+      response: '🌹 Red flowers are a classic! Our Red Rose Bouquets are perfect for romance and anniversaries. From <strong>₹599</strong>. <a href="/bloom-aura/pages/shop.php?q=red">See red bouquets →</a>',
+      followUps: ['💍 For anniversary', '💌 Valentine\'s?', '🎁 Add chocolates?', '💰 Pricing']
+    },
+
     },
 
     /* ── Gift types ── */
@@ -198,6 +218,7 @@
       patterns: ['hamper', 'gift box', 'gift set', 'gift basket', 'gift pack'],
       response: '🎁 Our gift hampers are perfect for any occasion! We have Birthday, Anniversary, Eid Special, and General hampers. Starting at <strong>₹1,199</strong>. <a href="/bloom-aura/pages/shop.php?cat=hampers">View hampers →</a>',
       followUps: ['🎂 Birthday hamper', '💍 Anniversary hamper', '💰 Under ₹1500', '🍫 Add chocolates?']
+      
     },
     {
       topic: 'chocolates',
@@ -511,18 +532,10 @@
       var entry = KB[i];
       for (var j = 0; j < entry.patterns.length; j++) {
         if (lower.indexOf(entry.patterns[j]) !== -1) {
-          var text = typeof entry.response === 'function' ? entry.response() : entry.response;
+           var text = typeof entry.response === 'function' ? entry.response(input) : entry.response;
 
           /* If topic already mentioned — prefix with memory note */
-          if (state.discussed.indexOf(entry.topic) !== -1) {
-            var memPrefixes = [
-              'As I mentioned earlier — ',
-              'Just to recap — ',
-              'Circling back — '
-            ];
-            var prefix = memPrefixes[state.msgCount % memPrefixes.length];
-            text = prefix + text;
-          }
+        
 
           /* Track this topic */
           if (state.discussed.indexOf(entry.topic) === -1) {
