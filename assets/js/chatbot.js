@@ -189,7 +189,9 @@
       topic: 'sunflowers',
       patterns: ['sunflower', 'sunflowers'],
       response: '🌻 Sunflowers bring such joy! We have beautiful sunflower bunches starting at <strong>₹399</strong>. Great for cheering someone up! <a href="/bloom-aura/pages/shop.php?q=sunflower">View sunflowers →</a>',
-      followUps: ['🎂 For a birthday', '🌸 Get well soon', '💐 Mixed bouquets', '🎁 Add chocolates?']{
+      followUps: ['🎂 For a birthday', '🌸 Get well soon', '💐 Mixed bouquets', '🎁 Add chocolates?']
+    },
+    {
       topic: 'colour_search',
       patterns: ['white', 'black', 'purple', 'yellow', 'orange', 'lavender', 'blue', 'mixed'],
       response: function () {
@@ -210,7 +212,7 @@
       followUps: ['💍 For anniversary', '💌 Valentine\'s?', '🎁 Add chocolates?', '💰 Pricing']
     },
 
-    },
+  
 
     /* ── Gift types ── */
     {
@@ -532,7 +534,7 @@
       var entry = KB[i];
       for (var j = 0; j < entry.patterns.length; j++) {
         if (lower.indexOf(entry.patterns[j]) !== -1) {
-           var text = typeof entry.response === 'function' ? entry.response(input) : entry.response;
+          var text = typeof entry.response === 'function' ? entry.response(input) : entry.response;
 
           /* If topic already mentioned — prefix with memory note */
         
