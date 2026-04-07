@@ -1,29 +1,60 @@
 /**
  * bloom-aura/assets/js/profile.js
- * Client-side form handling for profile page
- * Features:
- *   - Real-time password strength indicator
- *   - Confirm password matching validation
- *   - Email validation feedback
- *   - Form submission feedback
- *   - Progressive enhancement (server-side is source of truth)
+ * Client-side form handling for profile page.
+ * Name validation: letters only (no digits).
  */
 
 'use strict';
 
+/* ── Only letters, spaces, hyphens, apostrophes ── */
+var NAME_RE = /^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/;
+
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ── Password Strength Indicator ──────────────────────────────────
-  const newPasswordInput = document.getElementById('new_password');
+  const newPasswordInput  = document.getElementById('new_password');
   const currentPasswordInput = document.getElementById('current_password');
   const confirmPasswordInput = document.getElementById('confirm_password');
-  const emailInput = document.getElementById('email');
-  const nameInput = document.getElementById('name');
+  const emailInput  = document.getElementById('email');
+  const nameInput   = document.getElementById('name');
 
-  // ── Password Strength Meter ──────────────────────────────────────
+  // ── Name validation — block digits, show error ────────────────────────────
+  if (nameInput) {
+
+    /* Block digit key presses in real time */
+    nameInput.addEventListener('keypress', function (e) {
+      if (e.key.length === 1 && !NAME_RE.test(e.key)) {
+        e.preventDefault();
+      }
+    });
+
+    /* Strip pasted digits / invalid chars */
+    nameInput.addEventListener('input', function () {
+      var cleaned = this.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ' -]/g, '');
+      if (cleaned !== this.value) this.value = cleaned;
+    });
+
+    /* On blur — full validation */
+    nameInput.addEventListener('blur', () => {
+      const group = nameInput.closest('.form-group');
+      if (!group) return;
+      const val = nameInput.value.trim();
+
+      if (!val) {
+        showFormError(group, 'Name is required.');
+      } else if (val.length < 2) {
+        showFormError(group, 'Name must be at least 2 characters.');
+      } else if (!NAME_RE.test(val)) {
+        showFormError(group, 'Name can only contain letters, spaces, hyphens and apostrophes.');
+      } else {
+        clearFieldError(group);
+      }
+    });
+  }
+
+  // ── Password Strength Meter ───────────────────────────────────────────────
   function calculatePasswordStrength(password) {
     let strength = 0;
-    if (password.length >= 8) strength++;
+    if (password.length >= 8)  strength++;
     if (password.length >= 12) strength++;
     if (/[A-Z]/.test(password)) strength++;
     if (/[a-z]/.test(password)) strength++;
@@ -32,243 +63,146 @@ document.addEventListener('DOMContentLoaded', () => {
     return strength;
   }
 
-  function getPasswordStrengthLabel(strength) {
-    const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
-    return labels[Math.min(strength, 5)];
+  function getPasswordStrengthLabel(s) {
+    return ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'][Math.min(s, 5)];
   }
 
-  function getPasswordStrengthColor(strength) {
-    const colors = ['#dc2626', '#f97316', '#eab308', '#84cc16', '#22c55e', '#16a34a'];
-    return colors[Math.min(strength, 5)];
+  function getPasswordStrengthColor(s) {
+    return ['#dc2626','#f97316','#eab308','#84cc16','#22c55e','#16a34a'][Math.min(s, 5)];
   }
 
-  // Create and append password strength indicator
   if (newPasswordInput) {
     const strengthContainer = document.createElement('div');
-    strengthContainer.style.cssText = 'margin-top: 0.5rem; display: flex; align-items: center; gap: 0.75rem;';
+    strengthContainer.style.cssText = 'margin-top:.5rem;display:flex;align-items:center;gap:.75rem;';
     strengthContainer.innerHTML = `
-      <div style="flex: 1;">
-        <div style="height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden;">
-          <div id="strengthBar" style="height: 100%; width: 0%; background: #dc2626; transition: width 0.3s, background-color 0.3s; border-radius: 2px;"></div>
+      <div style="flex:1;">
+        <div style="height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden;">
+          <div id="strengthBar" style="height:100%;width:0%;background:#dc2626;transition:width .3s,background-color .3s;border-radius:2px;"></div>
         </div>
       </div>
-      <span id="strengthLabel" style="font-size: 0.75rem; font-weight: 600; color: #6b7280; min-width: 80px;">Minimum 8 chars</span>
-    `;
+      <span id="strengthLabel" style="font-size:.75rem;font-weight:600;color:#6b7280;min-width:80px;">Minimum 8 chars</span>`;
     newPasswordInput.closest('.form-group')?.appendChild(strengthContainer);
 
     newPasswordInput.addEventListener('input', () => {
-      const strength = calculatePasswordStrength(newPasswordInput.value);
-      const label = getPasswordStrengthLabel(strength);
-      const color = getPasswordStrengthColor(strength);
-      const barWidth = (strength / 6) * 100;
-
-      const strengthBar = document.getElementById('strengthBar');
-      const strengthLabel = document.getElementById('strengthLabel');
-
-      strengthBar.style.width = barWidth + '%';
-      strengthBar.style.backgroundColor = color;
-      strengthLabel.textContent = newPasswordInput.value ? label : 'Minimum 8 chars';
-      strengthLabel.style.color = newPasswordInput.value ? color : '#6b7280';
+      const s     = calculatePasswordStrength(newPasswordInput.value);
+      const color = getPasswordStrengthColor(s);
+      const bar   = document.getElementById('strengthBar');
+      const lbl   = document.getElementById('strengthLabel');
+      if (bar) { bar.style.width = (s / 6 * 100) + '%'; bar.style.backgroundColor = color; }
+      if (lbl) {
+        lbl.textContent = newPasswordInput.value ? getPasswordStrengthLabel(s) : 'Minimum 8 chars';
+        lbl.style.color = newPasswordInput.value ? color : '#6b7280';
+      }
     });
   }
 
-  // ── Confirm Password Matching ────────────────────────────────────
+  // ── Confirm password matching ─────────────────────────────────────────────
   if (newPasswordInput && confirmPasswordInput) {
-    confirmPasswordInput.addEventListener('input', () => {
-      const formGroup = confirmPasswordInput.closest('.form-group');
-      if (!formGroup) return;
-
-      if (confirmPasswordInput.value === '' || newPasswordInput.value === '') {
-        clearPasswordMatchFeedback(formGroup);
-      } else if (newPasswordInput.value === confirmPasswordInput.value) {
-        showPasswordMatchSuccess(formGroup);
+    const checkMatch = () => {
+      const group = confirmPasswordInput.closest('.form-group');
+      if (!group) return;
+      if (!confirmPasswordInput.value || !newPasswordInput.value) { clearFieldError(group); return; }
+      if (newPasswordInput.value === confirmPasswordInput.value) {
+        showPasswordMatchSuccess(group);
       } else {
-        showPasswordMatchError(formGroup);
+        showPasswordMatchError(group);
       }
-    });
-
-    // Also validate when new password changes
-    newPasswordInput.addEventListener('input', () => {
-      if (confirmPasswordInput.value) {
-        const formGroup = confirmPasswordInput.closest('.form-group');
-        if (!formGroup) return;
-
-        if (newPasswordInput.value === confirmPasswordInput.value) {
-          showPasswordMatchSuccess(formGroup);
-        } else {
-          showPasswordMatchError(formGroup);
-        }
-      }
-    });
+    };
+    confirmPasswordInput.addEventListener('blur', checkMatch);
+    newPasswordInput.addEventListener('input', () => { if (confirmPasswordInput.value) checkMatch(); });
   }
 
-  function showPasswordMatchSuccess(formGroup) {
-    let feedback = formGroup.querySelector('.password-match-feedback');
-    if (!feedback) {
-      feedback = document.createElement('span');
-      feedback.className = 'password-match-feedback';
-      feedback.style.cssText = 'display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; color: #22c55e; margin-top: 0.35rem; font-weight: 500;';
-      formGroup.appendChild(feedback);
-    }
-    feedback.innerHTML = '<i class="fa-solid fa-check"></i> Passwords match';
-    feedback.style.color = '#22c55e';
-  }
-
-  function showPasswordMatchError(formGroup) {
-    let feedback = formGroup.querySelector('.password-match-feedback');
-    if (!feedback) {
-      feedback = document.createElement('span');
-      feedback.className = 'password-match-feedback';
-      feedback.style.cssText = 'display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; color: #dc2626; margin-top: 0.35rem; font-weight: 500;';
-      formGroup.appendChild(feedback);
-    }
-    feedback.innerHTML = '<i class="fa-solid fa-xmark"></i> Passwords do not match';
-    feedback.style.color = '#dc2626';
-  }
-
-  function clearPasswordMatchFeedback(formGroup) {
-    const feedback = formGroup.querySelector('.password-match-feedback');
-    if (feedback) {
-      feedback.remove();
-    }
-  }
-
-  // ── Email Validation ─────────────────────────────────────────────
+  // ── Email validation ──────────────────────────────────────────────────────
   if (emailInput) {
     emailInput.addEventListener('blur', () => {
-      const formGroup = emailInput.closest('.form-group');
-      if (!formGroup) return;
-
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const isValid = emailRegex.test(emailInput.value);
-
-      if (emailInput.value === '') {
-        clearEmailFeedback(formGroup);
-      } else if (isValid) {
-        showEmailSuccess(formGroup);
+      const group = emailInput.closest('.form-group');
+      if (!group) return;
+      const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value);
+      if (emailInput.value && !ok) {
+        showEmailError(group);
       } else {
-        showEmailError(formGroup);
+        clearEmailFeedback(group);
       }
     });
   }
 
-  function showEmailSuccess(formGroup) {
-    let feedback = formGroup.querySelector('.email-feedback');
-    if (!feedback) {
-      feedback = document.createElement('span');
-      feedback.className = 'email-feedback';
-      feedback.style.cssText = 'display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; color: #22c55e; margin-top: 0.35rem;';
-      formGroup.appendChild(feedback);
-    }
-    feedback.innerHTML = '<i class="fa-solid fa-check"></i> Valid email';
-    feedback.style.color = '#22c55e';
-  }
-
-  function showEmailError(formGroup) {
-    let feedback = formGroup.querySelector('.email-feedback');
-    if (!feedback) {
-      feedback = document.createElement('span');
-      feedback.className = 'email-feedback';
-      feedback.style.cssText = 'display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; color: #dc2626; margin-top: 0.35rem;';
-      formGroup.appendChild(feedback);
-    }
-    feedback.innerHTML = '<i class="fa-solid fa-xmark"></i> Invalid email format';
-    feedback.style.color = '#dc2626';
-  }
-
-  function clearEmailFeedback(formGroup) {
-    const feedback = formGroup.querySelector('.email-feedback');
-    if (feedback) {
-      feedback.remove();
-    }
-  }
-
-  // ── Form Submission Feedback ─────────────────────────────────────
-  const profileForm = document.querySelector('form[action="/bloom-aura/pages/profile.php"]');
-  const updateProfileForm = document.querySelector('input[name="action"][value="update_profile"]')?.closest('form');
-  const changePasswordForm = document.querySelector('input[name="action"][value="change_password"]')?.closest('form');
+  // ── Form submit validation ────────────────────────────────────────────────
+  const updateProfileForm   = document.querySelector('input[name="action"][value="update_profile"]')?.closest('form');
+  const changePasswordForm  = document.querySelector('input[name="action"][value="change_password"]')?.closest('form');
 
   if (updateProfileForm) {
-    updateProfileForm.addEventListener('submit', (e) => {
-      const nameValue = nameInput?.value.trim() || '';
-      const emailValue = emailInput?.value.trim() || '';
+    updateProfileForm.addEventListener('submit', e => {
+      const nameVal  = nameInput?.value.trim() || '';
+      const emailVal = emailInput?.value.trim() || '';
+      let hasError   = false;
 
-      if (nameValue.length < 2) {
+      if (nameVal.length < 2 || !NAME_RE.test(nameVal)) {
         e.preventDefault();
-        showFormError(nameInput?.closest('.form-group'), 'Name must be at least 2 characters');
+        showFormError(nameInput?.closest('.form-group'), 'Please enter a valid name (letters only, at least 2 characters).');
+        hasError = true;
       }
-
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
         e.preventDefault();
-        showFormError(emailInput?.closest('.form-group'), 'Please enter a valid email address');
+        showFormError(emailInput?.closest('.form-group'), 'Please enter a valid email address.');
+        hasError = true;
       }
+      return !hasError;
     });
   }
 
   if (changePasswordForm) {
-    changePasswordForm.addEventListener('submit', (e) => {
-      const currentPass = currentPasswordInput?.value || '';
-      const newPass = newPasswordInput?.value || '';
-      const confirmPass = confirmPasswordInput?.value || '';
+    changePasswordForm.addEventListener('submit', e => {
+      const cur     = currentPasswordInput?.value || '';
+      const newP    = newPasswordInput?.value || '';
+      const confirm = confirmPasswordInput?.value || '';
+      let hasError  = false;
 
-      let hasError = false;
-
-      if (currentPass === '') {
-        e.preventDefault();
-        showFormError(currentPasswordInput?.closest('.form-group'), 'Enter your current password');
-        hasError = true;
-      }
-
-      if (newPass.length < 8) {
-        e.preventDefault();
-        showFormError(newPasswordInput?.closest('.form-group'), 'New password must be at least 8 characters');
-        hasError = true;
-      }
-
-      if (newPass !== confirmPass) {
-        e.preventDefault();
-        showFormError(confirmPasswordInput?.closest('.form-group'), 'Passwords do not match');
-        hasError = true;
-      }
+      if (!cur) { e.preventDefault(); showFormError(currentPasswordInput?.closest('.form-group'), 'Enter your current password.'); hasError = true; }
+      if (newP.length < 8) { e.preventDefault(); showFormError(newPasswordInput?.closest('.form-group'), 'New password must be at least 8 characters.'); hasError = true; }
+      if (newP !== confirm) { e.preventDefault(); showFormError(confirmPasswordInput?.closest('.form-group'), 'Passwords do not match.'); hasError = true; }
+      return !hasError;
     });
   }
 
-  function showFormError(formGroup, message) {
-    if (!formGroup) return;
-    formGroup.classList.add('has-error');
-    let errorEl = formGroup.querySelector('.field-error');
-    if (!errorEl) {
-      errorEl = document.createElement('span');
-      errorEl.className = 'field-error';
-      formGroup.appendChild(errorEl);
-    }
-    errorEl.textContent = message;
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function showFormError(group, message) {
+    if (!group) return;
+    group.classList.add('has-error');
+    let err = group.querySelector('.field-error');
+    if (!err) { err = document.createElement('span'); err.className = 'field-error'; group.appendChild(err); }
+    err.textContent = message;
   }
 
-  // ── Real-time name validation ────────────────────────────────────
-  if (nameInput) {
-    nameInput.addEventListener('blur', () => {
-      const formGroup = nameInput.closest('.form-group');
-      if (!formGroup) return;
-
-      const nameValue = nameInput.value.trim();
-      if (nameValue.length < 2 && nameValue.length > 0) {
-        formGroup.classList.add('has-error');
-        let errorEl = formGroup.querySelector('.field-error');
-        if (!errorEl) {
-          errorEl = document.createElement('span');
-          errorEl.className = 'field-error';
-          formGroup.appendChild(errorEl);
-        }
-        errorEl.textContent = 'Name must be at least 2 characters';
-      } else {
-        formGroup.classList.remove('has-error');
-        const errorEl = formGroup.querySelector('.field-error');
-        if (errorEl && !errorEl.textContent.includes('is already in use')) {
-          errorEl.remove();
-        }
-      }
-    });
+  function clearFieldError(group) {
+    if (!group) return;
+    group.classList.remove('has-error');
+    group.querySelector('.field-error')?.remove();
   }
+
+  function showPasswordMatchSuccess(group) {
+    let fb = group.querySelector('.password-match-feedback');
+    if (!fb) { fb = document.createElement('span'); fb.className = 'password-match-feedback'; fb.style.cssText = 'display:flex;align-items:center;gap:.35rem;font-size:.8rem;margin-top:.35rem;font-weight:500;'; group.appendChild(fb); }
+    fb.innerHTML = '<i class="fa-solid fa-check"></i> Passwords match'; fb.style.color = '#22c55e';
+  }
+
+  function showPasswordMatchError(group) {
+    let fb = group.querySelector('.password-match-feedback');
+    if (!fb) { fb = document.createElement('span'); fb.className = 'password-match-feedback'; fb.style.cssText = 'display:flex;align-items:center;gap:.35rem;font-size:.8rem;margin-top:.35rem;font-weight:500;'; group.appendChild(fb); }
+    fb.innerHTML = '<i class="fa-solid fa-xmark"></i> Passwords do not match'; fb.style.color = '#dc2626';
+  }
+
+  function showEmailSuccess(group) {
+    let fb = group.querySelector('.email-feedback');
+    if (!fb) { fb = document.createElement('span'); fb.className = 'email-feedback'; fb.style.cssText = 'display:flex;align-items:center;gap:.35rem;font-size:.8rem;color:#22c55e;margin-top:.35rem;'; group.appendChild(fb); }
+    fb.innerHTML = '<i class="fa-solid fa-check"></i> Valid email'; fb.style.color = '#22c55e';
+  }
+
+  function showEmailError(group) {
+    let fb = group.querySelector('.email-feedback');
+    if (!fb) { fb = document.createElement('span'); fb.className = 'email-feedback'; fb.style.cssText = 'display:flex;align-items:center;gap:.35rem;font-size:.8rem;color:#dc2626;margin-top:.35rem;'; group.appendChild(fb); }
+    fb.innerHTML = '<i class="fa-solid fa-xmark"></i> Invalid email format'; fb.style.color = '#dc2626';
+  }
+
+  function clearEmailFeedback(group) { group.querySelector('.email-feedback')?.remove(); }
 
 });
