@@ -1,12 +1,8 @@
 <?php
 /**
  * bloom-aura-1/pages/login.php
- *
- * Combined Sign In + Create Account page.
- * UI exactly matches bloom_aura reference HTML (dark card, lfield-* classes,
- * Apple social button, bloom icon, pass hint, login-main-btn gradient, etc.)
- *
- * Security: CSRF, bcrypt verify, session_regenerate_id, brute-force lockout.
+ * Combined Sign In + Create Account.
+ * Name validation: letters only — no digits.
  */
 
 session_start();
@@ -14,20 +10,19 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/flash.php';
 
-// Already logged in → redirect
 if (!empty($_SESSION['user_id'])) {
     header('Location: /bloom-aura/pages/shop.php');
     exit;
 }
 
-/* ── which tab to show on page load ── */
 $activeTab    = ($_GET['tab'] ?? 'signin') === 'signup' ? 'signup' : 'signin';
-
-/* ── error/old-value bags ── */
 $loginErrors  = [];
 $signupErrors = [];
 $oldLogin     = ['email' => ''];
 $oldSignup    = ['name' => '', 'email' => ''];
+
+/* ── Name regex: letters (including accented), spaces, hyphens, apostrophes ── */
+define('NAME_PATTERN', '/^[A-Za-zÀ-ÖØ-öø-ÿ\' -]+$/u');
 
 /* ════════════════════════════════════════════════════
    HANDLE SIGN-IN
@@ -52,47 +47,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
             $pdo = getPDO();
             $ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
-            /* ── brute-force: max 5 attempts in 15 min ── */
             $window = date('Y-m-d H:i:s', strtotime('-15 minutes'));
             $stmt   = $pdo->prepare(
-                'SELECT COUNT(*) FROM login_attempts
-                  WHERE email = ? AND ip_address = ? AND attempted_at > ?'
+                'SELECT COUNT(*) FROM login_attempts WHERE email = ? AND ip_address = ? AND attempted_at > ?'
             );
             $stmt->execute([$email, $ip, $window]);
 
             if ((int)$stmt->fetchColumn() >= 5) {
                 $loginErrors['general'] = 'Too many failed attempts. Please wait 15 minutes and try again.';
             } else {
-                /* ── fetch user ── */
                 $stmt = $pdo->prepare(
-                    'SELECT id, name, password_hash, is_active
-                       FROM users WHERE email = ? AND role = "customer" LIMIT 1'
+                    'SELECT id, name, password_hash, is_active FROM users WHERE email = ? AND role = "customer" LIMIT 1'
                 );
                 $stmt->execute([$email]);
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
                 if (!$user || !password_verify($password, $user['password_hash'])) {
-                    /* log failed attempt */
                     $pdo->prepare(
                         'INSERT INTO login_attempts (email, ip_address, attempted_at) VALUES (?, ?, NOW())'
                     )->execute([$email, $ip]);
                     $loginErrors['general'] = 'Incorrect email or password.';
-
                 } elseif (!$user['is_active']) {
                     $loginErrors['general'] = 'Your account has been deactivated. Please contact support.';
-
                 } else {
-                    /* ── success ── */
                     session_regenerate_id(true);
                     $_SESSION['user_id']     = $user['id'];
                     $_SESSION['user_name']   = $user['name'];
                     $_SESSION['user_active'] = 1;
-
-                    /* clear attempts */
-                    $pdo->prepare(
-                        'DELETE FROM login_attempts WHERE email = ?'
-                    )->execute([$email]);
-
+                    $pdo->prepare('DELETE FROM login_attempts WHERE email = ?')->execute([$email]);
                     $redirect = $_SESSION['login_redirect'] ?? '/bloom-aura/pages/shop.php';
                     unset($_SESSION['login_redirect']);
                     header('Location: ' . $redirect);
@@ -118,22 +100,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
     $confirm  = $_POST['confirm']        ?? '';
     $oldSignup = compact('name', 'email');
 
-    if (mb_strlen($name) < 2)
+    // ── Name: letters only ────────────────────────────────────────────────
+    if (mb_strlen($name) < 2) {
         $signupErrors['name'] = 'Please enter your full name (at least 2 characters).';
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL))
+    } elseif (!preg_match(NAME_PATTERN, $name)) {
+        $signupErrors['name'] = 'Name can only contain letters, spaces, hyphens and apostrophes — no numbers allowed.';
+    } elseif (mb_strlen($name) > 120) {
+        $signupErrors['name'] = 'Name must be 120 characters or fewer.';
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $signupErrors['email'] = 'Please enter a valid email address.';
-    if (strlen($password) < 8)
+    }
+    if (strlen($password) < 8) {
         $signupErrors['password'] = 'Password must be at least 8 characters.';
-    if ($password !== $confirm)
+    }
+    if ($password !== $confirm) {
         $signupErrors['confirm'] = 'Passwords do not match.';
+    }
 
     if (empty($signupErrors['email'])) {
         try {
             $pdo  = getPDO();
             $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
             $stmt->execute([$email]);
-            if ($stmt->fetch())
+            if ($stmt->fetch()) {
                 $signupErrors['email'] = 'An account with this email already exists.';
+            }
         } catch (RuntimeException $e) {
             $signupErrors['db'] = 'A server error occurred.';
         }
@@ -144,10 +137,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
             $pdo  = getPDO();
             $hash = password_hash($password, PASSWORD_BCRYPT);
             $pdo->prepare(
-                'INSERT INTO users (name, email, password_hash, role, is_active, created_at)
-                 VALUES (?, ?, ?, "customer", 1, NOW())'
+                'INSERT INTO users (name, email, password_hash, role, is_active, created_at) VALUES (?, ?, ?, "customer", 1, NOW())'
             )->execute([$name, $email, $hash]);
-
             flash('Account created! Welcome to Bloom Aura 🌸', 'success');
             header('Location: /bloom-aura/pages/login.php?tab=signin');
             exit;
@@ -157,56 +148,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
     }
 }
 
-/* ════════════════════════════════════════════════════
-   RENDER
-════════════════════════════════════════════════════ */
 $pageTitle = 'Login — Bloom Aura';
 $pageCss   = 'auth';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<?php /* ── Dark full-page wrapper — replaces normal page-container on this page ── */ ?>
 <div class="login-page-wrap">
 
-  <div class="login-page-bg"></div><?php /* radial glow orbs — styled in auth.css */ ?>
+  <div class="login-page-bg"></div>
 
   <div class="login-page-inner">
 
-    <?php /* ── Logo ── */ ?>
     <a href="/bloom-aura/" class="login-logo">🌸 <em>Bloom</em>&thinsp;Aura</a>
 
-    <?php /* ── Card ── */ ?>
     <div class="login-card">
 
-      <?php /* Flash messages (e.g. "Account created!") */ ?>
       <?php foreach ($flashMessages as $fm): ?>
         <div class="flash-msg flash-<?= htmlspecialchars($fm['type'], ENT_QUOTES, 'UTF-8') ?>">
           <?= htmlspecialchars($fm['msg'], ENT_QUOTES, 'UTF-8') ?>
         </div>
       <?php endforeach; ?>
 
-      <?php /* ── Tab bar ── */ ?>
+      <!-- Tab bar -->
       <div class="login-tab-bar">
         <button class="ltab <?= $activeTab === 'signin' ? 'active' : '' ?>"
-                id="ltab-signin"
-                onclick="switchLoginTab('signin')">Sign In</button>
+                id="ltab-signin" onclick="switchLoginTab('signin')">Sign In</button>
         <button class="ltab <?= $activeTab === 'signup' ? 'active' : '' ?>"
-                id="ltab-signup"
-                onclick="switchLoginTab('signup')">Create Account</button>
+                id="ltab-signup" onclick="switchLoginTab('signup')">Create Account</button>
       </div>
 
-      <?php /* ════════ SIGN-IN PANEL ════════ */ ?>
+      <!-- ════ SIGN-IN PANEL ════ -->
       <div id="login-panel-signin" <?= $activeTab !== 'signin' ? 'style="display:none"' : '' ?>>
-
         <div class="login-panel-header">
           <div class="login-panel-icon">🌸</div>
           <h2 class="login-panel-title">Welcome Back</h2>
           <p class="login-panel-sub">Sign in to your Bloom Aura account</p>
         </div>
 
-       
-
-        <?php /* General / brute-force error */ ?>
         <?php if (!empty($loginErrors['general'])): ?>
           <div class="login-error-dark">❌ <?= htmlspecialchars($loginErrors['general'], ENT_QUOTES, 'UTF-8') ?></div>
         <?php endif; ?>
@@ -215,15 +193,13 @@ require_once __DIR__ . '/../includes/header.php';
           <?php csrf_field(); ?>
           <input type="hidden" name="form_action" value="login">
 
-          <?php /* Email field */ ?>
           <div class="lfield-wrap">
             <label class="lfield-label" for="login-email">Email Address</label>
             <div class="lfield">
               <span class="lfield-icon">📧</span>
               <input type="email" id="login-email" name="email"
                      value="<?= htmlspecialchars($oldLogin['email'], ENT_QUOTES, 'UTF-8') ?>"
-                     placeholder="you@example.com"
-                     autocomplete="email" required>
+                     placeholder="you@example.com" autocomplete="email" required>
               <span class="lfield-bloom">🌸</span>
             </div>
             <?php if (!empty($loginErrors['email'])): ?>
@@ -231,14 +207,12 @@ require_once __DIR__ . '/../includes/header.php';
             <?php endif; ?>
           </div>
 
-          <?php /* Password field */ ?>
           <div class="lfield-wrap">
             <label class="lfield-label" for="login-pass">Password</label>
             <div class="lfield">
               <span class="lfield-icon">🔒</span>
               <input type="password" id="login-pass" name="password"
-                     placeholder="Your password"
-                     autocomplete="current-password" required>
+                     placeholder="Your password" autocomplete="current-password" required>
               <button type="button" class="lfield-end" onclick="toggleLoginPass()" aria-label="Toggle password visibility">👁</button>
             </div>
             <?php if (!empty($loginErrors['password'])): ?>
@@ -246,9 +220,7 @@ require_once __DIR__ . '/../includes/header.php';
             <?php endif; ?>
           </div>
 
-          <div class="forgot-row">
-            <a href="#">Forgot password? 💌</a>
-          </div>
+          <div class="forgot-row"><a href="#">Forgot password? 💌</a></div>
 
           <button type="submit" class="login-main-btn">Sign In →</button>
         </form>
@@ -261,12 +233,10 @@ require_once __DIR__ . '/../includes/header.php';
           <span>·</span>
           <button type="button" onclick="window.location='/bloom-aura/pages/shop.php'">Browse as guest</button>
         </div>
+      </div>
 
-      </div><?php /* /login-panel-signin */ ?>
-
-      <?php /* ════════ SIGN-UP PANEL ════════ */ ?>
+      <!-- ════ SIGN-UP PANEL ════ -->
       <div id="login-panel-signup" <?= $activeTab !== 'signup' ? 'style="display:none"' : '' ?>>
-
         <div class="login-panel-header">
           <div class="login-panel-icon">🌷</div>
           <h2 class="login-panel-title">Create Account</h2>
@@ -281,38 +251,45 @@ require_once __DIR__ . '/../includes/header.php';
           <?php csrf_field(); ?>
           <input type="hidden" name="form_action" value="register">
 
-          <?php /* Full Name */ ?>
+          <!-- ── Full Name — letters only ── -->
           <div class="lfield-wrap">
             <label class="lfield-label" for="signup-name">Full Name</label>
             <div class="lfield">
               <span class="lfield-icon">👤</span>
               <input type="text" id="signup-name" name="name"
                      value="<?= htmlspecialchars($oldSignup['name'], ENT_QUOTES, 'UTF-8') ?>"
-                     placeholder="Your full name"
-                     autocomplete="name" required>
+                     placeholder="e.g. Munisha Khan"
+                     autocomplete="name"
+                     required
+                     maxlength="120"
+                     pattern="[A-Za-zÀ-ÖØ-öø-ÿ' \-]+"
+                     title="Name can only contain letters, spaces, hyphens and apostrophes — no numbers"
+                     oninput="this.value=this.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\' \-]/g,'')"
+              >
               <span class="lfield-bloom">🌸</span>
             </div>
             <?php if (!empty($signupErrors['name'])): ?>
               <div class="field-error-dark">❌ <?= htmlspecialchars($signupErrors['name'], ENT_QUOTES, 'UTF-8') ?></div>
+            <?php else: ?>
+              <div class="pass-hint-new">Letters only — no numbers or special symbols.</div>
             <?php endif; ?>
           </div>
 
-          <?php /* Email */ ?>
+          <!-- Email -->
           <div class="lfield-wrap">
             <label class="lfield-label" for="signup-email">Email Address</label>
             <div class="lfield">
               <span class="lfield-icon">📧</span>
               <input type="email" id="signup-email" name="email"
                      value="<?= htmlspecialchars($oldSignup['email'], ENT_QUOTES, 'UTF-8') ?>"
-                     placeholder="you@example.com"
-                     autocomplete="email" required>
+                     placeholder="you@example.com" autocomplete="email" required>
             </div>
             <?php if (!empty($signupErrors['email'])): ?>
               <div class="field-error-dark">❌ <?= htmlspecialchars($signupErrors['email'], ENT_QUOTES, 'UTF-8') ?></div>
             <?php endif; ?>
           </div>
 
-          <?php /* Password */ ?>
+          <!-- Password -->
           <div class="lfield-wrap">
             <label class="lfield-label" for="signup-pass">Password</label>
             <div class="lfield">
@@ -329,14 +306,13 @@ require_once __DIR__ . '/../includes/header.php';
             <?php endif; ?>
           </div>
 
-          <?php /* Confirm Password */ ?>
+          <!-- Confirm password -->
           <div class="lfield-wrap">
             <label class="lfield-label" for="signup-confirm">Confirm Password</label>
             <div class="lfield">
               <span class="lfield-icon">🔒</span>
               <input type="password" id="signup-confirm" name="confirm"
-                     placeholder="Repeat your password"
-                     autocomplete="new-password" required>
+                     placeholder="Repeat your password" autocomplete="new-password" required>
             </div>
             <?php if (!empty($signupErrors['confirm'])): ?>
               <div class="field-error-dark">❌ <?= htmlspecialchars($signupErrors['confirm'], ENT_QUOTES, 'UTF-8') ?></div>
@@ -352,12 +328,11 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="login-bottom-links">
           <button type="button" onclick="window.location='/bloom-aura/'">← Back to home</button>
         </div>
+      </div>
 
-      </div><?php /* /login-panel-signup */ ?>
-
-    </div><?php /* /.login-card */ ?>
-  </div><?php /* /.login-page-inner */ ?>
-</div><?php /* /.login-page-wrap */ ?>
+    </div>
+  </div>
+</div>
 
 <script src="/bloom-aura/assets/js/login.js"></script>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
