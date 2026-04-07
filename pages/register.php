@@ -1,7 +1,7 @@
 <?php
 /**
  * bloom-aura/pages/register.php
- * Customer registration with server-side validation and bcrypt hashing.
+ * Customer registration — server-side name validation enforces letters only.
  */
 
 session_start();
@@ -9,20 +9,20 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/flash.php';
 
-// Already logged in — redirect away
 if (!empty($_SESSION['user_id'])) {
     header('Location: /bloom-aura/pages/shop.php');
     exit;
 }
 
 $errors = [];
-$old    = []; // Repopulate form fields on error
+$old    = [];
+
+/* ── Regex for valid names: letters (including accented), spaces, hyphens, apostrophes ── */
+define('NAME_PATTERN', '/^[A-Za-zÀ-ÖØ-öø-ÿ\' -]+$/u');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // 1. Validate CSRF
     csrf_validate();
 
-    // 2. Sanitise and collect inputs
     $name     = trim($_POST['name']     ?? '');
     $email    = trim($_POST['email']    ?? '');
     $password = $_POST['password']      ?? '';
@@ -30,13 +30,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $old = compact('name', 'email');
 
-    // 3. Validate
+    // ── Name validation ───────────────────────────────────────────────────
     if ($name === '' || mb_strlen($name) < 2) {
         $errors['name'] = 'Please enter your full name (at least 2 characters).';
+    } elseif (!preg_match(NAME_PATTERN, $name)) {
+        $errors['name'] = 'Name can only contain letters, spaces, hyphens, and apostrophes — no numbers or special characters.';
+    } elseif (mb_strlen($name) > 120) {
+        $errors['name'] = 'Name must be 120 characters or fewer.';
     }
+
+    // ── Email validation ──────────────────────────────────────────────────
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors['email'] = 'Please enter a valid email address.';
     }
+
+    // ── Password validation ───────────────────────────────────────────────
     if (strlen($password) < 8) {
         $errors['password'] = 'Password must be at least 8 characters.';
     }
@@ -44,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors['confirm'] = 'Passwords do not match.';
     }
 
-    // 4. Check for duplicate email (only if email is valid)
+    // ── Duplicate email check ─────────────────────────────────────────────
     if (empty($errors['email'])) {
         try {
             $pdo  = getPDO();
@@ -58,17 +66,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // 5. Insert if no errors
+    // ── Insert ────────────────────────────────────────────────────────────
     if (empty($errors)) {
         try {
             $pdo  = getPDO();
             $hash = password_hash($password, PASSWORD_BCRYPT);
-
-            $stmt = $pdo->prepare(
+            $pdo->prepare(
                 'INSERT INTO users (name, email, password_hash, role, is_active, created_at)
                  VALUES (?, ?, ?, "customer", 1, NOW())'
-            );
-            $stmt->execute([$name, $email, $hash]);
+            )->execute([$name, $email, $hash]);
 
             flash('Account created! Please log in.', 'success');
             header('Location: /bloom-aura/pages/login.php');
@@ -80,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pageTitle = 'Create Account — Bloom Aura';
-$pageCss = 'auth';
+$pageCss   = 'auth';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -108,6 +114,10 @@ require_once __DIR__ . '/../includes/header.php';
                     value="<?= htmlspecialchars($old['name'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
                     autocomplete="name"
                     required
+                    maxlength="120"
+                    pattern="[A-Za-zÀ-ÖØ-öø-ÿ' \-]+"
+                    title="Name can only contain letters, spaces, hyphens and apostrophes"
+                    placeholder="e.g. Munisha Khan"
                     aria-describedby="name-error"
                 >
                 <?php if (isset($errors['name'])): ?>
@@ -115,6 +125,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <?= htmlspecialchars($errors['name'], ENT_QUOTES, 'UTF-8') ?>
                     </span>
                 <?php endif; ?>
+                <span class="form-note">Letters only — no numbers or special symbols.</span>
             </div>
 
             <!-- Email -->
