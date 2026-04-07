@@ -1,7 +1,8 @@
 <?php
 /**
  * bloom-aura/pages/profile.php
- * Customer profile: view details, update name/email/password.
+ * Customer profile — view details, update name/email/password.
+ * Name validation: letters only, no digits.
  */
 
 session_start();
@@ -14,24 +15,37 @@ $userId = (int)$_SESSION['user_id'];
 $errors = [];
 $old    = [];
 
+/* ── Name regex: letters (including accented), spaces, hyphens, apostrophes ── */
+define('NAME_PATTERN', '/^[A-Za-zÀ-ÖØ-öø-ÿ\' -]+$/u');
+
 // ── Handle POST updates ───────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_validate();
     $action = $_POST['action'] ?? '';
 
-    // Update profile info
+    // ── Update profile info ───────────────────────────────────────────────
     if ($action === 'update_profile') {
-        $name  = trim($_POST['name'] ?? '');
+        $name  = trim($_POST['name']  ?? '');
         $email = strtolower(trim($_POST['email'] ?? ''));
         $old   = ['name' => $name, 'email' => $email];
 
-        if ($name === '' || strlen($name) < 2)  $errors['name']  = 'Name must be at least 2 characters.';
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors['email'] = 'Enter a valid email address.';
+        // Name: required, min 2, letters only
+        if ($name === '' || mb_strlen($name) < 2) {
+            $errors['name'] = 'Name must be at least 2 characters.';
+        } elseif (!preg_match(NAME_PATTERN, $name)) {
+            $errors['name'] = 'Name can only contain letters, spaces, hyphens and apostrophes — no numbers or special characters.';
+        } elseif (mb_strlen($name) > 120) {
+            $errors['name'] = 'Name must be 120 characters or fewer.';
+        }
+
+        // Email
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Enter a valid email address.';
+        }
 
         if (empty($errors)) {
             try {
                 $pdo = getPDO();
-                // Check email uniqueness (excluding own account)
                 $check = $pdo->prepare('SELECT id FROM users WHERE email = ? AND id != ?');
                 $check->execute([$email, $userId]);
                 if ($check->fetch()) {
@@ -51,15 +65,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Change password
+    // ── Change password ───────────────────────────────────────────────────
     if ($action === 'change_password') {
-        $current  = $_POST['current_password'] ?? '';
-        $newPass  = $_POST['new_password'] ?? '';
-        $confirm  = $_POST['confirm_password'] ?? '';
+        $current = $_POST['current_password'] ?? '';
+        $newPass = $_POST['new_password']     ?? '';
+        $confirm = $_POST['confirm_password'] ?? '';
 
-        if ($current === '')          $errors['current_password'] = 'Enter your current password.';
-        if (strlen($newPass) < 8)     $errors['new_password']     = 'New password must be at least 8 characters.';
-        if ($newPass !== $confirm)    $errors['confirm_password'] = 'Passwords do not match.';
+        if ($current === '')       $errors['current_password'] = 'Enter your current password.';
+        if (strlen($newPass) < 8)  $errors['new_password']     = 'New password must be at least 8 characters.';
+        if ($newPass !== $confirm) $errors['confirm_password'] = 'Passwords do not match.';
 
         if (empty($errors)) {
             try {
@@ -91,15 +105,12 @@ try {
     $stmt->execute([$userId]);
     $user = $stmt->fetch();
 
-    // Order stats
     $statsStmt = $pdo->prepare(
-        "SELECT COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS total_spent
-         FROM orders WHERE user_id = ?"
+        'SELECT COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS total_spent FROM orders WHERE user_id = ?'
     );
     $statsStmt->execute([$userId]);
     $stats = $statsStmt->fetch();
 
-    // Wishlist count
     $wlStmt = $pdo->prepare('SELECT COUNT(*) FROM wishlist WHERE user_id = ?');
     $wlStmt->execute([$userId]);
     $wishlistCount = (int)$wlStmt->fetchColumn();
@@ -111,7 +122,7 @@ try {
 }
 
 $pageTitle = 'My Profile — Bloom Aura';
-$pageCss = 'profile';
+$pageCss   = 'profile';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -125,7 +136,7 @@ require_once __DIR__ . '/../includes/header.php';
 
 <div class="page-container profile-page">
 
-    <!-- Stats header -->
+    <!-- Stats hero -->
     <div class="profile-hero">
         <div class="profile-avatar" aria-hidden="true">
             <?= strtoupper(mb_substr($user['name'] ?? 'U', 0, 1)) ?>
@@ -178,23 +189,43 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php csrf_field(); ?>
                 <input type="hidden" name="action" value="update_profile">
 
+                <!-- Full Name — letters only -->
                 <div class="form-group <?= isset($errors['name']) ? 'has-error' : '' ?>">
                     <label for="name">Full Name</label>
-                    <input type="text" id="name" name="name"
-                           value="<?= htmlspecialchars($old['name'] ?? $user['name'], ENT_QUOTES, 'UTF-8') ?>"
-                           required autocomplete="name">
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value="<?= htmlspecialchars($old['name'] ?? $user['name'], ENT_QUOTES, 'UTF-8') ?>"
+                        required
+                        maxlength="120"
+                        autocomplete="name"
+                        pattern="[A-Za-zÀ-ÖØ-öø-ÿ' \-]+"
+                        title="Name can only contain letters, spaces, hyphens and apostrophes"
+                        placeholder="e.g. Munisha Khan"
+                    >
                     <?php if (isset($errors['name'])): ?>
-                        <span class="field-error"><?= htmlspecialchars($errors['name'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="field-error" role="alert">
+                            <?= htmlspecialchars($errors['name'], ENT_QUOTES, 'UTF-8') ?>
+                        </span>
                     <?php endif; ?>
+                    <span class="form-note">Letters only — no numbers or special symbols.</span>
                 </div>
 
                 <div class="form-group <?= isset($errors['email']) ? 'has-error' : '' ?>">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email"
-                           value="<?= htmlspecialchars($old['email'] ?? $user['email'], ENT_QUOTES, 'UTF-8') ?>"
-                           required autocomplete="email">
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value="<?= htmlspecialchars($old['email'] ?? $user['email'], ENT_QUOTES, 'UTF-8') ?>"
+                        required
+                        autocomplete="email"
+                    >
                     <?php if (isset($errors['email'])): ?>
-                        <span class="field-error"><?= htmlspecialchars($errors['email'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="field-error" role="alert">
+                            <?= htmlspecialchars($errors['email'], ENT_QUOTES, 'UTF-8') ?>
+                        </span>
                     <?php endif; ?>
                 </div>
 
@@ -215,7 +246,9 @@ require_once __DIR__ . '/../includes/header.php';
                     <input type="password" id="current_password" name="current_password"
                            required autocomplete="current-password">
                     <?php if (isset($errors['current_password'])): ?>
-                        <span class="field-error"><?= htmlspecialchars($errors['current_password'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="field-error" role="alert">
+                            <?= htmlspecialchars($errors['current_password'], ENT_QUOTES, 'UTF-8') ?>
+                        </span>
                     <?php endif; ?>
                 </div>
 
@@ -224,7 +257,9 @@ require_once __DIR__ . '/../includes/header.php';
                     <input type="password" id="new_password" name="new_password"
                            required autocomplete="new-password" minlength="8">
                     <?php if (isset($errors['new_password'])): ?>
-                        <span class="field-error"><?= htmlspecialchars($errors['new_password'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="field-error" role="alert">
+                            <?= htmlspecialchars($errors['new_password'], ENT_QUOTES, 'UTF-8') ?>
+                        </span>
                     <?php endif; ?>
                 </div>
 
@@ -233,7 +268,9 @@ require_once __DIR__ . '/../includes/header.php';
                     <input type="password" id="confirm_password" name="confirm_password"
                            required autocomplete="new-password">
                     <?php if (isset($errors['confirm_password'])): ?>
-                        <span class="field-error"><?= htmlspecialchars($errors['confirm_password'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="field-error" role="alert">
+                            <?= htmlspecialchars($errors['confirm_password'], ENT_QUOTES, 'UTF-8') ?>
+                        </span>
                     <?php endif; ?>
                 </div>
 
@@ -242,7 +279,6 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
 
     </div><!-- /.profile-grid -->
-
 </div><!-- /.page-container -->
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
