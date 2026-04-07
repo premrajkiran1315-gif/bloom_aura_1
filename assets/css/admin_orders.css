@@ -80,11 +80,10 @@
   width: 180px;
   outline: none;
   transition: border-color .2s;
-  -moz-appearance: textfield;
-  .adm-search-input {
+.adm-search-input {
   -moz-appearance: textfield; /* Firefox */
   appearance: textfield;      /* Standard */
-}
+}  
 }
 .adm-search-input:focus { border-color: var(--adm-pink); }
 .adm-search-input::placeholder { color: rgba(255,255,255,.22); }
