@@ -1,248 +1,338 @@
 <?php
 /**
- * bloom-aura/pages/profile.php
- * Customer profile: view details, update name/email/password.
+ * bloom-aura-1/pages/login.php
+ * Combined Sign In + Create Account.
+ * Name validation: letters only — no digits.
  */
 
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/flash.php';
-require_once __DIR__ . '/../includes/auth_check.php';
 
-$userId = (int)$_SESSION['user_id'];
-$errors = [];
-$old    = [];
+if (!empty($_SESSION['user_id'])) {
+    header('Location: /bloom-aura/pages/shop.php');
+    exit;
+}
 
-// ── Handle POST updates ───────────────────────────────────────────────────────
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$activeTab    = ($_GET['tab'] ?? 'signin') === 'signup' ? 'signup' : 'signin';
+$loginErrors  = [];
+$signupErrors = [];
+$oldLogin     = ['email' => ''];
+$oldSignup    = ['name' => '', 'email' => ''];
+
+/* ── Name regex: letters (including accented), spaces, hyphens, apostrophes ── */
+define('NAME_PATTERN', '/^[A-Za-zÀ-ÖØ-öø-ÿ\' -]+$/u');
+
+/* ════════════════════════════════════════════════════
+   HANDLE SIGN-IN
+════════════════════════════════════════════════════ */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === 'login') {
     csrf_validate();
-    $action = $_POST['action'] ?? '';
+    $activeTab = 'signin';
 
-    // Update profile info
-    if ($action === 'update_profile') {
-        $name  = trim($_POST['name'] ?? '');
-        $email = strtolower(trim($_POST['email'] ?? ''));
-        $old   = ['name' => $name, 'email' => $email];
+    $email    = trim($_POST['email']    ?? '');
+    $password = $_POST['password']       ?? '';
+    $oldLogin = ['email' => $email];
 
-        if ($name === '' || strlen($name) < 2)  $errors['name']  = 'Name must be at least 2 characters.';
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors['email'] = 'Enter a valid email address.';
-
-        if (empty($errors)) {
-            try {
-                $pdo = getPDO();
-                // Check email uniqueness (excluding own account)
-                $check = $pdo->prepare('SELECT id FROM users WHERE email = ? AND id != ?');
-                $check->execute([$email, $userId]);
-                if ($check->fetch()) {
-                    $errors['email'] = 'This email is already in use by another account.';
-                } else {
-                    $pdo->prepare('UPDATE users SET name = ?, email = ? WHERE id = ?')
-                        ->execute([$name, $email, $userId]);
-                    $_SESSION['user_name']  = $name;
-                    $_SESSION['user_email'] = $email;
-                    flash('Profile updated successfully! ✅', 'success');
-                    header('Location: /bloom-aura/pages/profile.php');
-                    exit;
-                }
-            } catch (RuntimeException $e) {
-                $errors['db'] = 'Could not update profile. Please try again.';
-            }
-        }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $loginErrors['email'] = 'Please enter a valid email address.';
+    }
+    if ($password === '') {
+        $loginErrors['password'] = 'Password is required.';
     }
 
-    // Change password
-    if ($action === 'change_password') {
-        $current  = $_POST['current_password'] ?? '';
-        $newPass  = $_POST['new_password'] ?? '';
-        $confirm  = $_POST['confirm_password'] ?? '';
+    if (empty($loginErrors)) {
+        try {
+            $pdo = getPDO();
+            $ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
-        if ($current === '')          $errors['current_password'] = 'Enter your current password.';
-        if (strlen($newPass) < 8)     $errors['new_password']     = 'New password must be at least 8 characters.';
-        if ($newPass !== $confirm)    $errors['confirm_password'] = 'Passwords do not match.';
+            $window = date('Y-m-d H:i:s', strtotime('-15 minutes'));
+            $stmt   = $pdo->prepare(
+                'SELECT COUNT(*) FROM login_attempts WHERE email = ? AND ip_address = ? AND attempted_at > ?'
+            );
+            $stmt->execute([$email, $ip, $window]);
 
-        if (empty($errors)) {
-            try {
-                $pdo  = getPDO();
-                $stmt = $pdo->prepare('SELECT password_hash FROM users WHERE id = ?');
-                $stmt->execute([$userId]);
-                $user = $stmt->fetch();
+            if ((int)$stmt->fetchColumn() >= 5) {
+                $loginErrors['general'] = 'Too many failed attempts. Please wait 15 minutes and try again.';
+            } else {
+                $stmt = $pdo->prepare(
+                    'SELECT id, name, password_hash, is_active FROM users WHERE email = ? AND role = "customer" LIMIT 1'
+                );
+                $stmt->execute([$email]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                if (!$user || !password_verify($current, $user['password_hash'])) {
-                    $errors['current_password'] = 'Current password is incorrect.';
+                if (!$user || !password_verify($password, $user['password_hash'])) {
+                    $pdo->prepare(
+                        'INSERT INTO login_attempts (email, ip_address, attempted_at) VALUES (?, ?, NOW())'
+                    )->execute([$email, $ip]);
+                    $loginErrors['general'] = 'Incorrect email or password.';
+                } elseif (!$user['is_active']) {
+                    $loginErrors['general'] = 'Your account has been deactivated. Please contact support.';
                 } else {
-                    $hash = password_hash($newPass, PASSWORD_BCRYPT);
-                    $pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?')->execute([$hash, $userId]);
-                    flash('Password changed successfully! 🔐', 'success');
-                    header('Location: /bloom-aura/pages/profile.php');
+                    session_regenerate_id(true);
+                    $_SESSION['user_id']     = $user['id'];
+                    $_SESSION['user_name']   = $user['name'];
+                    $_SESSION['user_active'] = 1;
+                    $pdo->prepare('DELETE FROM login_attempts WHERE email = ?')->execute([$email]);
+                    $redirect = $_SESSION['login_redirect'] ?? '/bloom-aura/pages/shop.php';
+                    unset($_SESSION['login_redirect']);
+                    header('Location: ' . $redirect);
                     exit;
                 }
-            } catch (RuntimeException $e) {
-                $errors['db'] = 'Could not update password. Please try again.';
             }
+        } catch (RuntimeException $e) {
+            $loginErrors['general'] = 'A server error occurred. Please try again.';
         }
     }
 }
 
-// ── Fetch current user ────────────────────────────────────────────────────────
-try {
-    $pdo  = getPDO();
-    $stmt = $pdo->prepare('SELECT name, email, created_at FROM users WHERE id = ?');
-    $stmt->execute([$userId]);
-    $user = $stmt->fetch();
+/* ════════════════════════════════════════════════════
+   HANDLE SIGN-UP
+════════════════════════════════════════════════════ */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === 'register') {
+    csrf_validate();
+    $activeTab = 'signup';
 
-    // Order stats
-    $statsStmt = $pdo->prepare(
-        "SELECT COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS total_spent
-         FROM orders WHERE user_id = ?"
-    );
-    $statsStmt->execute([$userId]);
-    $stats = $statsStmt->fetch();
+    $name     = trim($_POST['name']     ?? '');
+    $email    = trim($_POST['email']    ?? '');
+    $password = $_POST['password']       ?? '';
+    $confirm  = $_POST['confirm']        ?? '';
+    $oldSignup = compact('name', 'email');
 
-    // Wishlist count
-    $wlStmt = $pdo->prepare('SELECT COUNT(*) FROM wishlist WHERE user_id = ?');
-    $wlStmt->execute([$userId]);
-    $wishlistCount = (int)$wlStmt->fetchColumn();
+    // ── Name: letters only ────────────────────────────────────────────────
+    if (mb_strlen($name) < 2) {
+        $signupErrors['name'] = 'Please enter your full name (at least 2 characters).';
+    } elseif (!preg_match(NAME_PATTERN, $name)) {
+        $signupErrors['name'] = 'Name can only contain letters, spaces, hyphens and apostrophes — no numbers allowed.';
+    } elseif (mb_strlen($name) > 120) {
+        $signupErrors['name'] = 'Name must be 120 characters or fewer.';
+    }
 
-} catch (RuntimeException $e) {
-    $user  = ['name' => '', 'email' => '', 'created_at' => date('Y-m-d')];
-    $stats = ['order_count' => 0, 'total_spent' => 0];
-    $wishlistCount = 0;
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $signupErrors['email'] = 'Please enter a valid email address.';
+    }
+    if (strlen($password) < 8) {
+        $signupErrors['password'] = 'Password must be at least 8 characters.';
+    }
+    if ($password !== $confirm) {
+        $signupErrors['confirm'] = 'Passwords do not match.';
+    }
+
+    if (empty($signupErrors['email'])) {
+        try {
+            $pdo  = getPDO();
+            $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
+            $stmt->execute([$email]);
+            if ($stmt->fetch()) {
+                $signupErrors['email'] = 'An account with this email already exists.';
+            }
+        } catch (RuntimeException $e) {
+            $signupErrors['db'] = 'A server error occurred.';
+        }
+    }
+
+    if (empty($signupErrors)) {
+        try {
+            $pdo  = getPDO();
+            $hash = password_hash($password, PASSWORD_BCRYPT);
+            $pdo->prepare(
+                'INSERT INTO users (name, email, password_hash, role, is_active, created_at) VALUES (?, ?, ?, "customer", 1, NOW())'
+            )->execute([$name, $email, $hash]);
+            flash('Account created! Welcome to Bloom Aura 🌸', 'success');
+            header('Location: /bloom-aura/pages/login.php?tab=signin');
+            exit;
+        } catch (RuntimeException $e) {
+            $signupErrors['db'] = 'A server error occurred. Please try again.';
+        }
+    }
 }
 
-$pageTitle = 'My Profile — Bloom Aura';
-$pageCss = 'profile';
+$pageTitle = 'Login — Bloom Aura';
+$pageCss   = 'auth';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<!-- Breadcrumb -->
-<nav class="breadcrumb" aria-label="Breadcrumb">
-    <ol>
-        <li><a href="/">Home</a></li>
-        <li aria-current="page">My Profile</li>
-    </ol>
-</nav>
+<div class="login-page-wrap">
 
-<div class="page-container profile-page">
+  <div class="login-page-bg"></div>
 
-    <!-- Stats header -->
-    <div class="profile-hero">
-        <div class="profile-avatar" aria-hidden="true">
-            <?= strtoupper(mb_substr($user['name'] ?? 'U', 0, 1)) ?>
+  <div class="login-page-inner">
+
+    <a href="/bloom-aura/" class="login-logo">🌸 <em>Bloom</em>&thinsp;Aura</a>
+
+    <div class="login-card">
+
+      <?php foreach ($flashMessages as $fm): ?>
+        <div class="flash-msg flash-<?= htmlspecialchars($fm['type'], ENT_QUOTES, 'UTF-8') ?>">
+          <?= htmlspecialchars($fm['msg'], ENT_QUOTES, 'UTF-8') ?>
         </div>
-        <div class="profile-hero-info">
-            <h1 class="profile-name"><?= htmlspecialchars($user['name'], ENT_QUOTES, 'UTF-8') ?></h1>
-            <p class="profile-email"><?= htmlspecialchars($user['email'], ENT_QUOTES, 'UTF-8') ?></p>
-            <p class="profile-since">Member since <?= date('F Y', strtotime($user['created_at'])) ?></p>
+      <?php endforeach; ?>
+
+      <!-- Tab bar -->
+      <div class="login-tab-bar">
+        <button class="ltab <?= $activeTab === 'signin' ? 'active' : '' ?>"
+                id="ltab-signin" onclick="switchLoginTab('signin')">Sign In</button>
+        <button class="ltab <?= $activeTab === 'signup' ? 'active' : '' ?>"
+                id="ltab-signup" onclick="switchLoginTab('signup')">Create Account</button>
+      </div>
+
+      <!-- ════ SIGN-IN PANEL ════ -->
+      <div id="login-panel-signin" <?= $activeTab !== 'signin' ? 'style="display:none"' : '' ?>>
+        <div class="login-panel-header">
+          <div class="login-panel-icon">🌸</div>
+          <h2 class="login-panel-title">Welcome Back</h2>
+          <p class="login-panel-sub">Sign in to your Bloom Aura account</p>
         </div>
-        <div class="profile-stats">
-            <div class="profile-stat">
-                <span class="stat-val"><?= (int)$stats['order_count'] ?></span>
-                <span class="stat-label">Orders</span>
+
+        <?php if (!empty($loginErrors['general'])): ?>
+          <div class="login-error-dark">❌ <?= htmlspecialchars($loginErrors['general'], ENT_QUOTES, 'UTF-8') ?></div>
+        <?php endif; ?>
+
+        <form action="/bloom-aura/pages/login.php" method="POST" novalidate>
+          <?php csrf_field(); ?>
+          <input type="hidden" name="form_action" value="login">
+
+          <div class="lfield-wrap">
+            <label class="lfield-label" for="login-email">Email Address</label>
+            <div class="lfield">
+              <span class="lfield-icon">📧</span>
+              <input type="email" id="login-email" name="email"
+                     value="<?= htmlspecialchars($oldLogin['email'], ENT_QUOTES, 'UTF-8') ?>"
+                     placeholder="you@example.com" autocomplete="email" required>
+              <span class="lfield-bloom">🌸</span>
             </div>
-            <div class="profile-stat">
-                <span class="stat-val">₹<?= number_format($stats['total_spent'], 0) ?></span>
-                <span class="stat-label">Spent</span>
-            </div>
-            <div class="profile-stat">
-                <span class="stat-val"><?= $wishlistCount ?></span>
-                <span class="stat-label">Wishlisted</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick links -->
-    <div class="profile-quick-links">
-        <a href="/bloom-aura/pages/order-history.php" class="quick-link">
-            <i class="fa-solid fa-clock-rotate-left"></i> Order History
-        </a>
-        <a href="/bloom-aura/pages/wishlist.php" class="quick-link">
-            <i class="fa-solid fa-heart"></i> My Wishlist
-        </a>
-        <a href="/bloom-aura/pages/shop.php" class="quick-link">
-            <i class="fa-solid fa-basket-shopping"></i> Shop Now
-        </a>
-    </div>
-
-    <div class="profile-grid">
-
-        <!-- ── Update Profile Form ── -->
-        <div class="profile-card">
-            <h2 class="profile-card-title">Edit Profile</h2>
-
-            <?php if (!empty($errors['db'])): ?>
-                <div class="alert alert-error"><?= htmlspecialchars($errors['db'], ENT_QUOTES, 'UTF-8') ?></div>
+            <?php if (!empty($loginErrors['email'])): ?>
+              <div class="field-error-dark">❌ <?= htmlspecialchars($loginErrors['email'], ENT_QUOTES, 'UTF-8') ?></div>
             <?php endif; ?>
+          </div>
 
-            <form action="/bloom-aura/pages/profile.php" method="POST" novalidate>
-                <?php csrf_field(); ?>
-                <input type="hidden" name="action" value="update_profile">
+          <div class="lfield-wrap">
+            <label class="lfield-label" for="login-pass">Password</label>
+            <div class="lfield">
+              <span class="lfield-icon">🔒</span>
+              <input type="password" id="login-pass" name="password"
+                     placeholder="Your password" autocomplete="current-password" required>
+              <button type="button" class="lfield-end" onclick="toggleLoginPass()" aria-label="Toggle password visibility">👁</button>
+            </div>
+            <?php if (!empty($loginErrors['password'])): ?>
+              <div class="field-error-dark">❌ <?= htmlspecialchars($loginErrors['password'], ENT_QUOTES, 'UTF-8') ?></div>
+            <?php endif; ?>
+          </div>
 
-                <div class="form-group <?= isset($errors['name']) ? 'has-error' : '' ?>">
-                    <label for="name">Full Name</label>
-                    <input type="text" id="name" name="name"
-                           value="<?= htmlspecialchars($old['name'] ?? $user['name'], ENT_QUOTES, 'UTF-8') ?>"
-                           required autocomplete="name">
-                    <?php if (isset($errors['name'])): ?>
-                        <span class="field-error"><?= htmlspecialchars($errors['name'], ENT_QUOTES, 'UTF-8') ?></span>
-                    <?php endif; ?>
-                </div>
+          <div class="forgot-row"><a href="#">Forgot password? 💌</a></div>
 
-                <div class="form-group <?= isset($errors['email']) ? 'has-error' : '' ?>">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email"
-                           value="<?= htmlspecialchars($old['email'] ?? $user['email'], ENT_QUOTES, 'UTF-8') ?>"
-                           required autocomplete="email">
-                    <?php if (isset($errors['email'])): ?>
-                        <span class="field-error"><?= htmlspecialchars($errors['email'], ENT_QUOTES, 'UTF-8') ?></span>
-                    <?php endif; ?>
-                </div>
+          <button type="submit" class="login-main-btn">Sign In →</button>
+        </form>
 
-                <button type="submit" class="btn btn-primary">Save Changes</button>
-            </form>
+        <div class="login-footer-text">
+          No account? <a href="#" onclick="switchLoginTab('signup');return false;">Create one free →</a>
+        </div>
+        <div class="login-bottom-links">
+          <button type="button" onclick="window.location='/bloom-aura/'">← Back to home</button>
+          <span>·</span>
+          <button type="button" onclick="window.location='/bloom-aura/pages/shop.php'">Browse as guest</button>
+        </div>
+      </div>
+
+      <!-- ════ SIGN-UP PANEL ════ -->
+      <div id="login-panel-signup" <?= $activeTab !== 'signup' ? 'style="display:none"' : '' ?>>
+        <div class="login-panel-header">
+          <div class="login-panel-icon">🌷</div>
+          <h2 class="login-panel-title">Create Account</h2>
+          <p class="login-panel-sub">Join Bloom Aura and start gifting</p>
         </div>
 
-        <!-- ── Change Password Form ── -->
-        <div class="profile-card">
-            <h2 class="profile-card-title">Change Password</h2>
+        <?php if (!empty($signupErrors['db'])): ?>
+          <div class="login-error-dark">❌ <?= htmlspecialchars($signupErrors['db'], ENT_QUOTES, 'UTF-8') ?></div>
+        <?php endif; ?>
 
-            <form action="/bloom-aura/pages/profile.php" method="POST" novalidate>
-                <?php csrf_field(); ?>
-                <input type="hidden" name="action" value="change_password">
+        <form action="/bloom-aura/pages/login.php?tab=signup" method="POST" novalidate>
+          <?php csrf_field(); ?>
+          <input type="hidden" name="form_action" value="register">
 
-                <div class="form-group <?= isset($errors['current_password']) ? 'has-error' : '' ?>">
-                    <label for="current_password">Current Password</label>
-                    <input type="password" id="current_password" name="current_password"
-                           required autocomplete="current-password">
-                    <?php if (isset($errors['current_password'])): ?>
-                        <span class="field-error"><?= htmlspecialchars($errors['current_password'], ENT_QUOTES, 'UTF-8') ?></span>
-                    <?php endif; ?>
-                </div>
+          <!-- ── Full Name — letters only ── -->
+          <div class="lfield-wrap">
+            <label class="lfield-label" for="signup-name">Full Name</label>
+            <div class="lfield">
+              <span class="lfield-icon">👤</span>
+              <input type="text" id="signup-name" name="name"
+                     value="<?= htmlspecialchars($oldSignup['name'], ENT_QUOTES, 'UTF-8') ?>"
+                     placeholder="e.g. Munisha Khan"
+                     autocomplete="name"
+                     required
+                     maxlength="120"
+                     pattern="[A-Za-zÀ-ÖØ-öø-ÿ' \-]+"
+                     title="Name can only contain letters, spaces, hyphens and apostrophes — no numbers"
+                     oninput="this.value=this.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\' \-]/g,'')"
+              >
+              <span class="lfield-bloom">🌸</span>
+            </div>
+            <?php if (!empty($signupErrors['name'])): ?>
+              <div class="field-error-dark">❌ <?= htmlspecialchars($signupErrors['name'], ENT_QUOTES, 'UTF-8') ?></div>
+            <?php else: ?>
+              <div class="pass-hint-new">Letters only — no numbers or special symbols.</div>
+            <?php endif; ?>
+          </div>
 
-                <div class="form-group <?= isset($errors['new_password']) ? 'has-error' : '' ?>">
-                    <label for="new_password">New Password</label>
-                    <input type="password" id="new_password" name="new_password"
-                           required autocomplete="new-password" minlength="8">
-                    <?php if (isset($errors['new_password'])): ?>
-                        <span class="field-error"><?= htmlspecialchars($errors['new_password'], ENT_QUOTES, 'UTF-8') ?></span>
-                    <?php endif; ?>
-                </div>
+          <!-- Email -->
+          <div class="lfield-wrap">
+            <label class="lfield-label" for="signup-email">Email Address</label>
+            <div class="lfield">
+              <span class="lfield-icon">📧</span>
+              <input type="email" id="signup-email" name="email"
+                     value="<?= htmlspecialchars($oldSignup['email'], ENT_QUOTES, 'UTF-8') ?>"
+                     placeholder="you@example.com" autocomplete="email" required>
+            </div>
+            <?php if (!empty($signupErrors['email'])): ?>
+              <div class="field-error-dark">❌ <?= htmlspecialchars($signupErrors['email'], ENT_QUOTES, 'UTF-8') ?></div>
+            <?php endif; ?>
+          </div>
 
-                <div class="form-group <?= isset($errors['confirm_password']) ? 'has-error' : '' ?>">
-                    <label for="confirm_password">Confirm New Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password"
-                           required autocomplete="new-password">
-                    <?php if (isset($errors['confirm_password'])): ?>
-                        <span class="field-error"><?= htmlspecialchars($errors['confirm_password'], ENT_QUOTES, 'UTF-8') ?></span>
-                    <?php endif; ?>
-                </div>
+          <!-- Password -->
+          <div class="lfield-wrap">
+            <label class="lfield-label" for="signup-pass">Password</label>
+            <div class="lfield">
+              <span class="lfield-icon">🔒</span>
+              <input type="password" id="signup-pass" name="password"
+                     placeholder="Create a password (8+ chars)"
+                     oninput="signupPassHint(this)"
+                     autocomplete="new-password" required>
+              <button type="button" class="lfield-end" onclick="toggleSignupPass()" aria-label="Toggle password visibility">👁</button>
+            </div>
+            <div id="signup-pass-hint" class="pass-hint-new">8+ characters</div>
+            <?php if (!empty($signupErrors['password'])): ?>
+              <div class="field-error-dark">❌ <?= htmlspecialchars($signupErrors['password'], ENT_QUOTES, 'UTF-8') ?></div>
+            <?php endif; ?>
+          </div>
 
-                <button type="submit" class="btn btn-primary">Update Password</button>
-            </form>
+          <!-- Confirm password -->
+          <div class="lfield-wrap">
+            <label class="lfield-label" for="signup-confirm">Confirm Password</label>
+            <div class="lfield">
+              <span class="lfield-icon">🔒</span>
+              <input type="password" id="signup-confirm" name="confirm"
+                     placeholder="Repeat your password" autocomplete="new-password" required>
+            </div>
+            <?php if (!empty($signupErrors['confirm'])): ?>
+              <div class="field-error-dark">❌ <?= htmlspecialchars($signupErrors['confirm'], ENT_QUOTES, 'UTF-8') ?></div>
+            <?php endif; ?>
+          </div>
+
+          <button type="submit" class="login-main-btn">Create Account 🌸</button>
+        </form>
+
+        <div class="login-footer-text">
+          Already have an account? <a href="#" onclick="switchLoginTab('signin');return false;">Sign in →</a>
         </div>
+        <div class="login-bottom-links">
+          <button type="button" onclick="window.location='/bloom-aura/'">← Back to home</button>
+        </div>
+      </div>
 
-    </div><!-- /.profile-grid -->
+    </div>
+  </div>
+</div>
 
-</div><!-- /.page-container -->
-
+<script src="/bloom-aura/assets/js/login.js"></script>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
